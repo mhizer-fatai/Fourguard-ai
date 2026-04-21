@@ -1,0 +1,19 @@
+{
+  "name": "fourguard-backend",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "@google/generative-ai": "^0.24.1",
+    "axios": "^1.15.0",
+    "cors": "^2.8.6",
+    "dotenv": "^16.4.7",
+    "express": "^5.2.1",
+    "genlayer-js": "^0.28.5",
+    "nanoid": "^3.3.11",
+    "socket.io": "^4.8.3",
+    "viem": "^2.48.1"
+  }
+}

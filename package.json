@@ -1,0 +1,21 @@
+{
+  "name": "fourguard-ai-monorepo",
+  "private": true,
+  "version": "1.0.0",
+  "workspaces": [
+    "backend",
+    "frontend"
+  ],
+  "scripts": {
+    "dev": "concurrently \"npm run start --prefix backend\" \"npm run dev --prefix frontend\"",
+    "install-all": "npm install"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1"
+  },
+  "dependencies": {
+    "dotenv": "^17.4.2",
+    "genlayer-js": "^0.28.5",
+    "viem": "^2.48.1"
+  }
+}
