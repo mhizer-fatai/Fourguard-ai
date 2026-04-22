@@ -147,31 +147,31 @@ const AuditStrategist = ({ insight, score }) => {
           <Shield color={getRiskColor(score)} size={20} />
           <h4 style={{ fontSize: '14px', fontWeight: 800, color: 'white', letterSpacing: '1px' }}>SUMMARY</h4>
         </div>
-        <p style={{ fontSize: '16px', color: '#ccc', lineHeight: 1.6, fontWeight: 500 }}>{insight.summary}</p>
+        <p style={{ fontSize: '18px', color: '#fff', lineHeight: 1.7, fontWeight: 500 }}>{insight.summary}</p>
       </div>
 
       {/* 2. Pros vs Cons */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '24px' }}>
-        <div style={{ padding: '32px', borderRadius: '24px', background: 'rgba(163, 255, 18, 0.02)', border: '1px solid rgba(255,255,255,0.03)', boxShadow: 'inset 0 0 20px rgba(163, 255, 18, 0.05)' }}>
-          <div style={{ color: 'var(--primary)', fontSize: '13px', fontWeight: 800, marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <Zap size={16} /> POSITIVE INDICATORS
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))', gap: '24px' }}>
+        <div style={{ padding: '36px', borderRadius: '28px', background: 'rgba(163, 255, 18, 0.02)', border: '1px solid rgba(163, 255, 18, 0.1)', boxShadow: 'inset 0 0 30px rgba(163, 255, 18, 0.05)' }}>
+          <div style={{ color: 'var(--primary)', fontSize: '14px', fontWeight: 900, marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '12px', letterSpacing: '1px' }}>
+            <Zap size={18} /> POSITIVE INDICATORS
           </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
             {insight.pros?.map((p, i) => (
-              <div key={`pro-${i}`} style={{ fontSize: '15px', color: '#eee', display: 'flex', gap: '12px', lineHeight: 1.4 }}>
-                <div style={{ minWidth: '6px', height: '6px', borderRadius: '50%', background: 'var(--primary)', marginTop: '8px' }} /> {p}
+              <div key={`pro-${i}`} style={{ fontSize: '16px', color: '#eee', display: 'flex', gap: '14px', lineHeight: 1.6 }}>
+                <div style={{ minWidth: '8px', height: '8px', borderRadius: '50%', background: 'var(--primary)', marginTop: '9px' }} /> {p}
               </div>
             ))}
           </div>
         </div>
-        <div style={{ padding: '32px', borderRadius: '24px', background: 'rgba(255, 60, 60, 0.02)', border: '1px solid rgba(255,255,255,0.03)', boxShadow: 'inset 0 0 20px rgba(255, 60, 60, 0.05)' }}>
-          <div style={{ color: '#ff3c3c', fontSize: '13px', fontWeight: 800, marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <ShieldAlert size={16} /> RISK FACTORS
+        <div style={{ padding: '36px', borderRadius: '28px', background: 'rgba(255, 60, 60, 0.02)', border: '1px solid rgba(255, 60, 60, 0.1)', boxShadow: 'inset 0 0 30px rgba(255, 60, 60, 0.05)' }}>
+          <div style={{ color: '#ff3c3c', fontSize: '14px', fontWeight: 900, marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '12px', letterSpacing: '1px' }}>
+            <ShieldAlert size={18} /> RISK FACTORS
           </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
             {insight.cons?.map((c, i) => (
-              <div key={`con-${i}`} style={{ fontSize: '15px', color: '#eee', display: 'flex', gap: '12px', lineHeight: 1.4 }}>
-                <div style={{ minWidth: '6px', height: '6px', borderRadius: '50%', background: '#ff3c3c', marginTop: '8px' }} /> {c}
+              <div key={`con-${i}`} style={{ fontSize: '16px', color: '#eee', display: 'flex', gap: '14px', lineHeight: 1.6 }}>
+                <div style={{ minWidth: '8px', height: '8px', borderRadius: '50%', background: '#ff3c3c', marginTop: '9px' }} /> {c}
               </div>
             ))}
           </div>
@@ -179,19 +179,19 @@ const AuditStrategist = ({ insight, score }) => {
       </div>
 
       {/* 3. Watchlist & Strategy */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '24px' }}>
-        <div className="glass" style={{ padding: '32px', borderRadius: '24px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-          <div style={{ color: '#787b86', fontSize: '11px', fontWeight: 800, marginBottom: '12px', letterSpacing: '2px' }}>THINGS TO WATCH</div>
-          <p style={{ color: 'white', fontSize: '18px', fontWeight: 700, margin: 0 }}>{insight.watchlist}</p>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))', gap: '24px' }}>
+        <div className="glass" style={{ padding: '36px', borderRadius: '28px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+          <div style={{ color: '#787b86', fontSize: '12px', fontWeight: 900, marginBottom: '16px', letterSpacing: '2px', textTransform: 'uppercase' }}>THINGS TO WATCH</div>
+          <p style={{ color: 'white', fontSize: '20px', fontWeight: 700, margin: 0, lineHeight: 1.5 }}>{insight.watchlist}</p>
         </div>
         <div style={{ 
-          padding: '32px', borderRadius: '24px', 
+          padding: '40px', borderRadius: '28px', 
           background: 'linear-gradient(135deg, var(--primary) 0%, #d4ff00 100%)', 
-          color: 'black', boxShadow: '0 10px 30px rgba(163, 255, 18, 0.2)',
+          color: 'black', boxShadow: '0 15px 40px rgba(163, 255, 18, 0.25)',
           display: 'flex', flexDirection: 'column', justifyContent: 'center'
         }}>
-          <div style={{ fontSize: '11px', fontWeight: 900, marginBottom: '12px', letterSpacing: '2px', opacity: 0.8 }}>STRATEGIC ADVISORY</div>
-          <p style={{ fontSize: '20px', fontWeight: 950, textTransform: 'uppercase', margin: 0, letterSpacing: '-0.02em' }}>{insight.strategy}</p>
+          <div style={{ fontSize: '12px', fontWeight: 950, marginBottom: '16px', letterSpacing: '2px', opacity: 0.8, textTransform: 'uppercase' }}>STRATEGIC ADVISORY</div>
+          <p style={{ fontSize: '22px', fontWeight: 900, margin: 0, letterSpacing: '-0.02em', lineHeight: 1.4 }}>{insight.strategy}</p>
         </div>
       </div>
     </motion.div>
@@ -262,12 +262,14 @@ const AuditPage = ({ isConnected, onOpenConnectModal, onScanComplete }) => {
          try {
            const res = await fetch(`${API_BASE}/api/scan-status/${token.id}`);
            const data = await res.json();
-           if (data.status === 'completed') {
-             setAuditResult(data.report);
-             setScanStatus('completed');
-             if (onScanComplete) onScanComplete({ ...token, ...data.report });
-             clearInterval(interval);
-           }
+            if (data.status === 'completed') {
+              setAuditResult(data.report);
+              setScanStatus('completed');
+              if (onScanComplete) onScanComplete({ ...token, ...data.report });
+              clearInterval(interval);
+            } else if (data.status === 'finalizing') {
+              setScanStatus('finalizing');
+            }
          } catch (e) {
            console.error("Polling error:", e);
          }
@@ -306,8 +308,36 @@ const AuditPage = ({ isConnected, onOpenConnectModal, onScanComplete }) => {
   });
 
   if (loading) return (
-    <div style={{ height: '80vh', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white' }}>
-      <Loader2 className="animate-spin" size={48} color="var(--primary)" />
+    <div style={{ height: '80vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '32px' }}>
+      <motion.div
+        animate={{ rotate: 360 }}
+        transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
+        style={{ 
+          position: 'relative',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center'
+        }}
+      >
+        <div style={{ 
+          position: 'absolute', width: '80px', height: '80px', 
+          borderRadius: '50%', border: '2px solid var(--primary)', 
+          opacity: 0.2, filter: 'blur(10px)' 
+        }} />
+        <Loader2 size={64} color="var(--primary)" />
+      </motion.div>
+      <div style={{ textAlign: 'center' }}>
+        <h2 style={{ fontSize: '14px', fontWeight: 950, color: 'white', letterSpacing: '4px', textTransform: 'uppercase', marginBottom: '12px' }}>
+          FourGuard Intelligence
+        </h2>
+        <motion.p 
+          animate={{ opacity: [0.4, 1, 0.4] }}
+          transition={{ duration: 2, repeat: Infinity }}
+          style={{ fontSize: '11px', color: 'var(--primary)', fontWeight: 900, letterSpacing: '2px', textTransform: 'uppercase' }}
+        >
+          Synchronizing Data...
+        </motion.p>
+      </div>
     </div>
   );
 
@@ -398,11 +428,41 @@ const AuditPage = ({ isConnected, onOpenConnectModal, onScanComplete }) => {
                 <div style={{ padding: '40px', borderRadius: '24px', background: 'rgba(255,255,255,0.02)', border: '1px dashed rgba(255,255,255,0.1)', textAlign: 'center' }}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px', color: '#666' }}>
                     <Loader2 className="animate-spin" size={16} /> 
-                    <span style={{ fontSize: '14px', fontWeight: 600, letterSpacing: '1px', textTransform: 'uppercase' }}>Consensus Reached. Finalizing Deep Review...</span>
+                    <span style={{ fontSize: '14px', fontWeight: 600, letterSpacing: '1px', textTransform: 'uppercase' }}>FINALIZING REVIEW...</span>
                   </div>
                 </div>
               ) : (
-                <AuditStrategist insight={auditResult?.insight} score={auditResult?.guardScore} />
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+                  <AuditStrategist insight={auditResult?.insight} score={auditResult?.guardScore} />
+                  
+                  {/* Smart Re-Scan Button */}
+                  {scanStatus === 'completed' && (
+                    <motion.button
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      onClick={handleDeepScan}
+                      style={{
+                        width: '100%',
+                        padding: '16px',
+                        borderRadius: '16px',
+                        background: 'rgba(255,255,255,0.03)',
+                        border: '1px solid rgba(255,255,255,0.1)',
+                        color: 'var(--primary)',
+                        fontSize: '13px',
+                        fontWeight: 900,
+                        letterSpacing: '2px',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '12px',
+                        marginTop: '12px'
+                      }}
+                    >
+                      <Activity size={16} /> SCAN AGAIN
+                    </motion.button>
+                  )}
+                </div>
               )}
             </div>
 
@@ -428,13 +488,34 @@ const AuditPage = ({ isConnected, onOpenConnectModal, onScanComplete }) => {
             </div>
           )}
 
-          {scanStatus === 'scanning' && (
-             <div className="glass" style={{ padding: '60px', borderRadius: '24px', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '24px' }}>
-                <Loader2 className="animate-spin" size={48} color="var(--primary)" />
-                <h3 style={{ fontSize: '20px', fontWeight: 900, color: 'white' }}>CONSENSUS IN PROGRESS...</h3>
-                <p style={{ color: '#888' }}>Gemini 3 Flash is currently waiting for GenLayer validators to finalize the deterministic scan of {token.symbol}.</p>
-             </div>
-          )}
+      {scanStatus === 'scanning' && (
+    <div className="glass" style={{ padding: '60px', borderRadius: '32px', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '24px' }}>
+      <motion.div
+        animate={{ rotate: 360 }}
+        transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+      >
+        <Loader2 size={48} color="var(--primary)" />
+      </motion.div>
+      <div>
+        <h3 style={{ fontSize: '18px', fontWeight: 900, letterSpacing: '2px', color: 'white', marginBottom: '8px' }}>SCAN IN PROGRESS... WAITING FOR GENLAYER</h3>
+        <p style={{ fontSize: '14px', color: '#888', maxWidth: '400px', margin: '0 auto' }}>
+          FourGuard AI is currently waiting for the GenLayer network to finish the deep scan of {token?.symbol || 'BSC'}.
+        </p>
+      </div>
+    </div>
+  )}
+
+  {scanStatus === 'finalizing' && (
+    <div className="glass" style={{ padding: '40px', borderRadius: '24px', textAlign: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '20px' }}>
+      <motion.div
+        animate={{ rotate: 360 }}
+        transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
+      >
+        <Loader2 size={24} color="var(--primary)" />
+      </motion.div>
+      <span style={{ fontSize: '13px', fontWeight: 900, letterSpacing: '2px', color: 'var(--primary)' }}>FINALIZING REVIEW...</span>
+    </div>
+  )}
         </div>
 
         {/* Right Column: Market & Technical Snapshot */}
