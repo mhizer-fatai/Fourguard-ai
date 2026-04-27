@@ -32,7 +32,7 @@ function saveToDisk(cache) {
   try {
     fs.writeFileSync(CACHE_FILE, JSON.stringify(cache, null, 2));
   } catch (err) {
-    console.error('❌ [Persistence] Save failed:', err.message);
+    console.error(' [Persistence] Save failed:', err.message);
   }
 }
 
@@ -41,11 +41,11 @@ function loadFromDisk() {
     if (fs.existsSync(CACHE_FILE)) {
       const data = fs.readFileSync(CACHE_FILE, 'utf8');
       const parsed = JSON.parse(data);
-      console.log(`💾 [Persistence] Loaded ${parsed.new?.length || 0} tokens from disk.`);
+      console.log(` [Persistence] Loaded ${parsed.new?.length || 0} tokens from disk.`);
       return parsed;
     }
   } catch (err) {
-    console.error('⚠️ [Persistence] Load failed, starting fresh.');
+    console.error('️ [Persistence] Load failed, starting fresh.');
   }
   return { trending: [], new: [], 'top-rated': [] };
 }
@@ -77,10 +77,10 @@ let finalTokenCache = loadFromDisk();
 
 // GLOBAL SAFETY NET: Prevent any unhandled errors from crashing the server
 process.on('unhandledRejection', (reason) => {
-  console.warn('⚠️ [Process] Unhandled Rejection (Caught):', reason?.message || reason);
+  console.warn('️ [Process] Unhandled Rejection (Caught):', reason?.message || reason);
 });
 process.on('uncaughtException', (err) => {
-  console.warn('⚠️ [Process] Uncaught Exception (Caught):', err.message);
+  console.warn('️ [Process] Uncaught Exception (Caught):', err.message);
 });
 
 // --- Key Rotation Logic ---
@@ -102,7 +102,10 @@ const getNextGeminiKey = () => {
 // -------------------------------------------------------------
 const DEV_MODE = false;
 const ALCHEMY_BSC_URL = process.env.ALCHEMY_BSC_URL;
-const ALCHEMY_BSC_WSS_URL = process.env.ALCHEMY_BSC_WSS_URL;
+// FORCE: Use the healthy HTTP key ID for WSS to fix 401 Unauthorized errors
+const ALCHEMY_KEY = ALCHEMY_BSC_URL.split('/').pop();
+const ALCHEMY_BSC_WSS_URL = `wss://bnb-mainnet.g.alchemy.com/v2/${ALCHEMY_KEY}`;
+const ANKR_BSC_URL = process.env.ANKR_BSC_URL;
 const BSCSCAN_API_KEY = process.env.BSCSCAN_API_KEY;
 
 // High-Cap coins that should NEVER appear on the Memecoin terminal
@@ -118,8 +121,8 @@ const GIGA_CAP_BLACKLIST = [
   '0x41864f4472cbbfa7dbfabf510480d28560abe0e0'  // WADA
 ];
 
-const GENLAYER_PRIVATE_KEY = process.env.GENLAYER_PRIVATE_KEY || '0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80';
-const GENLAYER_CONTRACT_ADDRESS = process.env.GENLAYER_CONTRACT_ADDRESS || '0x4c0afA9860AbdF92614D5BDac15ba4e5E9374AE6';
+const GENLAYER_PRIVATE_KEY = process.env.GENLAYER_PRIVATE_KEY;
+const GENLAYER_CONTRACT_ADDRESS = process.env.GENLAYER_CONTRACT_ADDRESS;
 const GENLAYER_ACCOUNT = privateKeyToAccount(GENLAYER_PRIVATE_KEY);
 const GENLAYER_CLIENT = createClient({
   chain: studionet,
@@ -132,7 +135,7 @@ const GENLAYER_CLIENT = createClient({
 
 // Gemini Magic Combination (Verified via Diagnostic)
 const GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent";
-const activeKey = "AIzaSyAhS_SV6rJMkD1575LO2oo6sjzwabkj5Q0";
+const activeKey = process.env.GEMINI_API_KEY_1;
 
 /**
  * Dual-Mode Gemini Intelligence Engine
@@ -155,7 +158,7 @@ async function generateGeminiOverview(tokenDetails, auditData = null) {
     const mcap = formatCurrency(tokenDetails.marketCap);
     const volume = formatCurrency(tokenDetails.volume);
     const liquidity = formatCurrency(tokenDetails.liquidity);
-    
+
     // Use deterministic values for consistency
     const addr = (tokenDetails.id || "").toLowerCase();
     const holderCount = getDeterministicValue(addr, 789, 150, 4500).toFixed(0);
@@ -166,7 +169,7 @@ async function generateGeminiOverview(tokenDetails, auditData = null) {
       pros: ["Active Market Feed", "Liquidity Verified"],
       cons: ["Security Enrichment Locked"],
       watchlist: "Monitor for ownership renunciation",
-      strategy: "⚠️ Click 'Deep Scan' to unlock GenLayer On-Chain Audit and AI Risk Intelligence."
+      strategy: "️ Click 'Deep Scan' to unlock GenLayer On-Chain Audit and AI Risk Intelligence."
     };
   }
 
@@ -177,29 +180,47 @@ async function generateGeminiOverview(tokenDetails, auditData = null) {
     const payload = {
       contents: [{
         parts: [{
-          text: `SYSTEM: You are the FourGuard Professional Security Researcher.
-               TASK: Provide a CLEAR and SIMPLE security report for ${tokenDetails.symbol} based on these audit results.
+          text: `SYSTEM: You are the FourGuard Lead Security Researcher. You speak with the authority of an experienced trader and security expert who understands both markets and code deeply.
+               TASK: Provide a sharp, polished, and human-sounding security report for ${tokenDetails.symbol}.
                GENLAYER AUDIT DATA: ${JSON.stringify(auditData)}
                METADATA: ${JSON.stringify(tokenDetails)}
                
+               WRITING STYLE & PERSONA:
+               1. SMART & EXPERIENCED: Sound like a pro researcher/trader who has seen it all.
+               2. CLEAR & NATURAL: Avoid robotic, academic, or overly institutional jargon. Speak directly and confidently.
+               3. PROFESSIONAL BUT ACCESSIBLE: Make complex risks easy to read. Be direct and realistic.
+               4. NO FLUFF: No overhype, no generic AI phrases, and no filler words. Every sentence must be intentional and provide value.
+               
                STRICT RULES:
-               1. USE SMART DEGEN ENGLISH: Use "Liquidity Pool", "LP", "Renounced", "Mint Authority", "Dev Wallet", "Burned". 
-               2. TERMINOLOGY: Refer to yourself and the system as "GenLayer intelligent contracts", not nodes.
-               3. STRUCTURE: Provide 5 detailed paragraphs with these EXACT headings:
+               1. TONE: Balanced and realistic. Use cautionary wording only when the data warrants it.
+               2. TERMINOLOGY: Use Web3 terms (Liquidity, Renounced, Minting) naturally within the flow of a conversation.
+               3. PERSUASIVE LOGIC: Use logical wording to explain the "why" behind the risks.
+               4. STRUCTURE: You MUST provide 5 DETAILED paragraphs with these EXACT headings:
                   **GENLAYER AUDIT FINDINGS**
                   **POSITIVE REMARKS**
                   **NEGATIVE REMARKS**
-                  **WHAT TO LOOK OUT FOR**
+                  **WHAT TO WATCH FOR**
                   **SUGGESTIONS**
-               4. EXPLAIN THE WHY: Be very detailed in your explanations.
+               5. LENGTH: Maintain the depth and length of a full professional briefing.
+               
+               STYLE EXAMPLE: "Our GenLayer intelligent contracts completed a full security check... it received a guardScore of 15/100... This level of failure usually means the contract is either badly built, highly unsafe, or designed with malicious intent."
                
                RETURN ONLY JSON: 
                {
-                 "findings": "detailed paragraph",
-                 "pros": "detailed paragraph",
-                 "cons": "detailed paragraph",
-                 "watchlist": "detailed paragraph",
-                 "suggestions": "detailed paragraph"
+                 "findings": "smart, polished paragraph",
+                 "pros": "smart, polished paragraph",
+                 "cons": "smart, polished paragraph",
+                 "watchlist": "smart, polished paragraph",
+                 "suggestions": "smart, polished paragraph",
+                 "checks": {
+                   "socials": boolean,
+                   "liquidity": boolean,
+                   "ownership": boolean,
+                   "mint": boolean,
+                   "concentration": boolean,
+                   "dev_wallet": boolean,
+                   "integrity": boolean
+                 }
                }`
         }]
       }],
@@ -214,7 +235,7 @@ async function generateGeminiOverview(tokenDetails, auditData = null) {
 
     let attempts = 0;
     let res;
-    
+
     while (attempts < 4) {
       const activeKey = getNextGeminiKey();
       if (!activeKey) throw new Error("No Gemini API keys configured");
@@ -230,7 +251,7 @@ async function generateGeminiOverview(tokenDetails, auditData = null) {
         break; // SUCCESS!
       } catch (err) {
         if (err.response?.status === 429) {
-          console.warn(`⚠️ [Gemini] Key #${currentGeminiKeyIndex + 1} Quota Hit (429), skipping...`);
+          console.warn(`️ [Gemini] Key #${currentGeminiKeyIndex + 1} Quota Hit (429), skipping...`);
           attempts++;
           continue;
         }
@@ -241,7 +262,7 @@ async function generateGeminiOverview(tokenDetails, auditData = null) {
     const text = res.data?.candidates?.[0]?.content?.parts?.[0]?.text;
     if (!text) throw new Error("Empty response from Gemini");
 
-    console.log(`✅ [Gemini] Success (${text.length} chars)`);
+    console.log(` [Gemini] Success (${text.length} chars)`);
 
     let jsonContent = text.trim();
     try {
@@ -250,9 +271,9 @@ async function generateGeminiOverview(tokenDetails, auditData = null) {
       if (start !== -1 && end > start) {
         jsonContent = jsonContent.substring(start, end);
       }
-      
+
       // Sanitization: Remove control characters that break JSON
-      const cleaned = jsonContent.replace(/[\u0000-\u001F]+/g, " "); 
+      const cleaned = jsonContent.replace(/[\u0000-\u001F]+/g, " ");
       return JSON.parse(cleaned);
     } catch (parseErr) {
       // LAST RESORT: If truncated, try to force-close the JSON
@@ -260,14 +281,14 @@ async function generateGeminiOverview(tokenDetails, auditData = null) {
         const forced = jsonContent + '"}';
         return JSON.parse(forced.replace(/[\u0000-\u001F]+/g, " "));
       } catch (e) {
-        console.error(`⚠️ [Gemini] JSON Parse Error for ${tokenDetails.symbol}:`, parseErr.message);
+        console.error(`️ [Gemini] JSON Parse Error for ${tokenDetails.symbol}:`, parseErr.message);
         throw new Error("No valid JSON block detected");
       }
     }
 
   } catch (err) {
-    console.error(`❌ [Gemini] Critical Failure for ${tokenDetails.symbol}:`, err.message);
-    
+    console.error(` [Gemini] Critical Failure for ${tokenDetails.symbol}:`, err.message);
+
     return {
       findings: `The GenLayer intelligent contracts have completed a deep scan of the BSC contract code and verified that the source code is authentic. The audit found that the ownership has been fully renounced to the dead address, meaning no one can ever access the owner-only functions again. Our intelligent contracts also confirmed that the contract does not contain any "blacklist" logic or "transfer-lock" functions that would prevent you from selling your tokens. The liquidity has been successfully bridged and locked on-chain, creating a verifiable safety shield for all market participants.`,
       pros: `This project has several strong safety points. First, the 0% buy and sell tax means you won't lose any money to the developer when you trade. Second, the fact that the developer cannot mint new tokens is a huge plus, as it prevents them from diluting your holdings. Finally, the contract is a standard, verified template which means it has been tested many times before and is unlikely to have any unique, hidden bugs.`,
@@ -288,21 +309,50 @@ function getInitialProjectOverview(tokenDetails) {
     if (num >= 1000) return (num / 1000).toFixed(2) + "K";
     return num.toFixed(2);
   };
-  
+
   const symbol = tokenDetails.symbol || "Token";
-  const price = tokenDetails.price ? (tokenDetails.price < 0.0001 ? tokenDetails.price.toFixed(8) : tokenDetails.price.toFixed(4)) : "0.00";
-  const change = tokenDetails.priceChange?.h24 || (Math.random() * 5).toFixed(2);
-  const mcap = formatCurrency(tokenDetails.marketCap);
-  const liquidity = formatCurrency(tokenDetails.liquidity);
   
+  const formatFallbackPrice = (val) => {
+    if (!val || val === 0) return "0.00";
+    if (val >= 0.01) return val.toFixed(4);
+    const strVal = val.toFixed(20);
+    const match = strVal.match(/^0\.(0+)(\d{1,4})/);
+    if (match && match[1].length >= 3) return `0.0(${match[1].length})${match[2]}`;
+    return val.toFixed(8).replace(/0+$/, '');
+  };
+  const price = formatFallbackPrice(tokenDetails.price || 0);
+  
+  const changeRaw = tokenDetails.priceChange?.h24 || (Math.random() * 5);
+  const change = changeRaw.toFixed(2);
+  const changeDirection = changeRaw >= 0 ? "an increase" : "a decrease";
+  
+  const mcap = formatCurrency(tokenDetails.marketCap);
+  
+  const rawLiquidity = tokenDetails.liquidity || 0;
+  const liquidity = formatCurrency(rawLiquidity);
+  const liquidityNarrative = rawLiquidity < 1000 
+    ? `There is a dangerously low **$${liquidity}** sitting in the liquidity pool, meaning it may be extremely difficult for people to buy and sell without crashing the price.`
+    : `There is **$${liquidity}** sitting in the liquidity pool to make sure people can buy and sell.`;
+
   const addr = (tokenDetails.id || "").toLowerCase();
   const holderCount = Math.floor(parseFloat(getDeterministicValue(addr, 789, 150, 4500)));
   const top10 = tokenDetails.details?.top10Holders || `${getDeterministicValue(addr, 123, 10, 45)}%`;
   const devWallet = tokenDetails.details?.devWallet || `${getDeterministicValue(addr, 456, 0.5, 5)}%`;
-  const age = tokenDetails.details?.age || "New";
   const ownership = tokenDetails.details?.ownership || "Active";
+  
+  let ageNarrative = "just launched recently";
+  if (tokenDetails.createdAt) {
+    const diffSecs = Math.floor((Date.now() - tokenDetails.createdAt) / 1000);
+    const diffMins = Math.floor(diffSecs / 60);
+    const diffHrs = Math.floor(diffMins / 60);
+    const diffDays = Math.floor(diffHrs / 24);
+    if (diffDays > 0) ageNarrative = `${diffDays} days old`;
+    else if (diffHrs > 0) ageNarrative = `${diffHrs} hours old`;
+    else if (diffMins > 0) ageNarrative = `${diffMins} minutes old`;
+    else ageNarrative = `${diffSecs} seconds old`;
+  }
 
-  return `**${symbol}** is currently priced at **$${price}**, which is an increase of **${change}%** since yesterday. The total market value of all the coins combined is now **$${mcap}**. There is **$${liquidity}** sitting in the liquidity pool to make sure people can buy and sell. Right now, there are **${holderCount}** different people holding this coin in their wallets. When we look at who owns the most, the top 10 biggest wallets are holding **${top10}** of the entire supply. The project started on **${age}** and the contract is currently **${ownership}**, with the developer wallet holding **${devWallet}** of the total coins.`;
+  return `**${symbol}** is currently priced at **$${price}**, which is ${changeDirection} of **${Math.abs(change)}%** since yesterday. The total market value of all the coins combined is now **$${mcap}**. ${liquidityNarrative} Right now, there are **${holderCount}** different people holding this coin in their wallets. When we look at who owns the most, the top 10 biggest wallets are holding **${top10}** of the entire supply. The project is **${ageNarrative}** and the contract is currently **${ownership}**, with the developer wallet holding **${devWallet}** of the total coins.`;
 }
 
 const ALCHEMY_CLIENT = createPublicClient({
@@ -310,17 +360,12 @@ const ALCHEMY_CLIENT = createPublicClient({
   transport: http(ALCHEMY_BSC_URL)
 });
 
-const ALCHEMY_WSS_CLIENT = createPublicClient({
-  chain: bsc,
-  transport: webSocket(ALCHEMY_BSC_WSS_URL)
-});
-
+// WSS client removed - replaced by Premium DexScreener Engine
 // Resilience Shield: Prioritize your private Alchemy endpoint
 const RPC_ENDPOINTS = [
-  process.env.ALCHEMY_BSC_URL, // Primary (High Reliability)
-  'https://bsc-dataseed.binance.org/',
-  'https://rpc.ankr.com/bsc',
-  'https://bsc.publicnode.com'
+  process.env.ALCHEMY_BSC_URL,
+  process.env.ANKR_BSC_URL, // High Reliability fallback
+  'https://bsc-dataseed.binance.org/'
 ];
 
 let currentRpcIndex = 0;
@@ -349,7 +394,7 @@ let PUBLIC_BSC_CLIENT = getResilientClient();
 // Rotation Handler
 const rotateRpc = () => {
   currentRpcIndex = (currentRpcIndex + 1) % RPC_ENDPOINTS.length;
-  console.log(`🔌 [Network] Rotating to backup RPC: ${RPC_ENDPOINTS[currentRpcIndex]}`);
+  console.log(` [Network] Rotating to backup RPC: ${RPC_ENDPOINTS[currentRpcIndex]}`);
   PUBLIC_BSC_CLIENT = getResilientClient();
 };
 
@@ -493,212 +538,14 @@ async function fetchDexScreenerData(addresses) {
       fetchedAt: new Date().toLocaleTimeString()
     }));
   } catch (err) {
-    console.error('❌ [DexScreener] Global fetch failed:', err.message);
+    console.error(' [DexScreener] Global fetch failed:', err.message);
     return [];
   }
 }
 
-/**
- * REAL-TIME DISCOVERY ENGINE (WSS)
- */
-const FOUR_MEME_PROXY = "0x5c952063c7fc8610ffdb798152d69f0b9550762b";
-const PANCAKE_FACTORY = "0xcA143Ce32Fe78f1f7019d7d551a6402fC5350c73";
+// startLiveDiscovery and captureNewToken logic removed.
+// We now strictly rely on robust DexScreener polling for high-quality data.
 
-/**
- * BULLETPROOF ON-CHAIN DISCOVERY ENGINE
- * Using Axios + SSL-Bypass to fetch blockchain logs for total resilience.
- */
-const startLiveDiscovery = async (io) => {
-  console.log('📡 [Discovery Engine] Starting Resilience-Shield Polling...');
-
-  // Set initial block with robust retry
-  let syncSuccess = false;
-  while (!syncSuccess) {
-    try {
-      const res = await axios.post(RPC_ENDPOINTS[currentRpcIndex], {
-        jsonrpc: "2.0", id: 1, method: "eth_blockNumber", params: []
-      }, {
-        httpsAgent: new https.Agent({ rejectUnauthorized: false }),
-        timeout: 5000
-      });
-
-      const blockHex = res.data?.result;
-      if (blockHex && typeof blockHex === 'string' && blockHex.startsWith('0x')) {
-        lastProcessedBlock = parseInt(blockHex, 16);
-        if (!isNaN(lastProcessedBlock)) {
-          syncSuccess = true;
-          console.log(`📡 [Discovery] Syncing at block ${lastProcessedBlock}`);
-        }
-      }
-    } catch (e) {
-      console.warn(`⚠️ [Discovery] Sync failed on RPC ${currentRpcIndex}. Rotating...`);
-      rotateRpc();
-      await new Promise(r => setTimeout(r, 2000));
-    }
-  }
-
-  // Polling Loop
-  setInterval(async () => {
-    try {
-      const toBlock = Number(await PUBLIC_BSC_CLIENT.getBlockNumber());
-      const fromBlock = Number(lastProcessedBlock) > 0 ? Number(lastProcessedBlock) + 1 : toBlock - 20;
-
-      if (fromBlock > toBlock) return;
-
-      console.log(`📡 [Radar] Scanning Blocks: ${fromBlock} -> ${toBlock}`);
-      await fetchOnChainLogs(io, fromBlock, toBlock);
-      lastProcessedBlock = toBlock;
-
-      io.emit('radar-status', { status: 'online', block: toBlock });
-    } catch (err) {
-      console.warn('⚠️ [Radar] RPC Syncing Issue:', err.message);
-      io.emit('radar-status', { status: 'error', message: err.message });
-      rotateRpc();
-    }
-  }, 8000);
-};
-
-/**
- * Fetch logs using Axios with SSL bypass
- */
-async function fetchOnChainLogs(io, fromBlock, toBlock) {
-  const topics = {
-    fourMeme: '0xd030737a11a88b1ccf52b662df9d3635749f76a524eadb397970d44081c7e937', // TokenCreated (Live)
-    pancake: '0x0d3648bd0f6ba80134a33ba9275ac585d9d315f0ad835062d53b6fa673cad405'  // PairCreated (V2)
-  };
-
-  try {
-    const res = await axios.post(RPC_ENDPOINTS[currentRpcIndex], {
-      jsonrpc: "2.0", id: 1, method: "eth_getLogs",
-      params: [{
-        fromBlock: `0x${fromBlock.toString(16)}`,
-        toBlock: `0x${toBlock.toString(16)}`,
-        topics: [[topics.fourMeme, topics.pancake]]
-      }]
-    }, {
-      httpsAgent: new https.Agent({
-        rejectUnauthorized: false,
-        ciphers: 'DEFAULT@SECLEVEL=1',
-        minVersion: 'TLSv1'
-      }),
-      timeout: 10000
-    });
-
-    const logs = res.data?.result || [];
-    if (logs.length > 0) {
-      console.log(`✨ [Radar] Found ${logs.length} on-chain events! Parsing...`);
-      for (const log of logs) {
-        let addr;
-        if (log.topics[0] === topics.fourMeme) {
-          // Four.meme TokenCreated: topic[1] is the token
-          addr = '0x' + log.topics[1].slice(26);
-        } else {
-          // PancakeSwap PairCreated: topics[1] = token0, topics[2] = token1
-          const t0 = '0x' + log.topics[1].slice(26);
-          const t1 = '0x' + log.topics[2].slice(26);
-          // Take the one that ISN'T a major base currency
-          addr = GIGA_CAP_BLACKLIST.includes(t0.toLowerCase()) ? t1 : t0;
-        }
-
-        if (addr) {
-          captureNewToken(io, addr, 'Scanning...', 'NEW', log.topics[0] === topics.fourMeme);
-        }
-      }
-    } else {
-      // console.log(`🛰️ [Radar] Quiet...`);
-    }
-  } catch (e) {
-    if (e.message.includes('limit exceeded')) {
-      // Just skip and move on to the next one to avoid block lag
-    } else {
-      console.warn('⚠️ [On-Chain Logs] Fetch failed:', e.message);
-      rotateRpc();
-    }
-  }
-}
-
-/**
- * Capture token details via DexScreener and inject into global cache
- */
-async function captureNewToken(io, address, name, symbol, isFour) {
-  const addr = address.toLowerCase();
-
-  // Skip if already in our trending/new lists
-  const exists = [...finalTokenCache.trending, ...finalTokenCache.new].some(t => t.id === addr);
-  if (exists) return;
-
-  // 1. INSTANT BROADCAST (Skeleton Data)
-  const skeletonToken = {
-    id: addr,
-    address: addr, // UNIFIED ID
-    name: name || 'Scanning...',
-    symbol: symbol || 'NEWS',
-    price: 0,
-    marketCap: 0,
-    liquidity: 0,
-    volume: 0,
-    isFourMeme: isFour,
-    status: 'DISCOVERING...',
-    createdAt: Date.now(),
-    capturedAt: Date.now(), // Ensure discovery time is locked
-    fetchedAt: new Date().toLocaleTimeString()
-  };
-
-  // Add to local cache immediately
-  finalTokenCache.new = [skeletonToken, ...finalTokenCache.new].slice(0, 500);
-  io.emit('new-token', skeletonToken);
-  console.log(`📡 [Radar] INSTANT BROADCAST: ${skeletonToken.id}`);
-
-  // 2. DELAYED ENRICHMENT (Once DexScreener indexes it)
-  setTimeout(async () => {
-    try {
-      const res = await axios.get(`https://api.dexscreener.com/latest/dex/tokens/${addr}`, {
-        httpsAgent: new https.Agent({ rejectUnauthorized: false })
-      });
-      const pair = res.data?.pairs?.[0];
-
-      if (!pair) {
-        console.log(`🛰️ [Radar] No market data yet for ${addr}, retrying enrich in 10s...`);
-        return; // We could retry, but the skeleton is already on the dashboard
-      }
-
-      const info = pair.info || {};
-      const socials = info.socials || [];
-      const twitter = socials.find(s => s.type === 'twitter')?.url || '';
-      const telegram = socials.find(s => s.type === 'telegram')?.url || '';
-      const website = info.websites?.[0]?.url || '';
-
-      const tokenObj = {
-        ...skeletonToken,
-        name: pair.baseToken.name,
-        symbol: pair.baseToken.symbol,
-        price: parseFloat(pair.priceUsd || 0),
-        marketCap: pair.fdv || 0,
-        liquidity: pair.liquidity?.usd || 0,
-        volume: pair.volume?.h24 || 0,
-        logo: info.imageUrl || '',
-        website,
-        twitter,
-        telegram,
-        status: 'LIVE'
-      };
-
-      // Enrich with security
-      const details = await getTokenSecurityDetails(tokenObj);
-      const enriched = { ...tokenObj, details };
-
-      // Update cache
-      finalTokenCache.new = finalTokenCache.new.map(t => t.id === addr ? enriched : t);
-
-      // Secondary emit to update the UI with real data
-      io.emit('new-token', enriched);
-      console.log(`🚀 [Discovery] Successfully Enriched & Broadcasted: ${tokenObj.symbol}`);
-
-    } catch (err) {
-      // Keep skeleton
-    }
-  }, 5000);
-}
 
 /**
  * DEEP METADATA REPAIR MACHINE
@@ -716,12 +563,12 @@ const repairMissingMetadata = async (io) => {
   const missingLogos = [...new Set(allTokens.filter(t => !t.logo || t.logo === "").map(t => t.id))];
 
   if (missingLogos.length === 0) return;
-  console.log(`🛠️ [Repair Machine] Found ${missingLogos.length} tokens missing logos. Starting Deep Repair...`);
+  console.log(`️ [Repair Machine] Found ${missingLogos.length} tokens missing logos. Starting Deep Repair...`);
 
   let index = 0;
   const interval = setInterval(async () => {
     if (index >= missingLogos.length) {
-      console.log('✅ [Repair Machine] All missing metadata has been healed.');
+      console.log(' [Repair Machine] All missing metadata has been healed.');
       clearInterval(interval);
       return;
     }
@@ -737,7 +584,7 @@ const repairMissingMetadata = async (io) => {
 
       const pair = res.data.pairs?.[0];
       if (!pair || !pair.info) {
-        console.warn(`⚠️ [Repair Machine] No profile info found on DexScreener for ${addr}`);
+        console.warn(`️ [Repair Machine] No profile info found on DexScreener for ${addr}`);
         return;
       }
 
@@ -762,7 +609,7 @@ const repairMissingMetadata = async (io) => {
         });
       });
 
-      console.log(`✨ [Repair Machine] HEALED: ${pair.baseToken.symbol} (${addr})`);
+      console.log(` [Repair Machine] HEALED: ${pair.baseToken.symbol} (${addr})`);
 
       // Save every few tokens to ensure persistence
       if (index % 5 === 0) saveToDisk(finalTokenCache);
@@ -771,7 +618,7 @@ const repairMissingMetadata = async (io) => {
       io.emit('initial-data', finalTokenCache);
 
     } catch (err) {
-      console.error(`❌ [Repair Machine] Failed to heal ${addr}:`, err.message);
+      console.error(` [Repair Machine] Failed to heal ${addr}:`, err.message);
     }
   }, 2000); // Throttled to 1 request per 2 seconds to be safe
 };
@@ -781,7 +628,7 @@ const repairMissingMetadata = async (io) => {
  * Periodically refreshes prices for all tokens in the cache to ensure the dashboard stays live.
  */
 const startLivePriceUpdater = (io) => {
-  console.log('📈 [Price Engine] Initializing Bulk Price Updater...');
+  console.log(' [Price Engine] Initializing Bulk Price Updater...');
 
   setInterval(async () => {
     try {
@@ -801,7 +648,7 @@ const startLivePriceUpdater = (io) => {
         chunkedAddresses.push(addresses.slice(i, i + 30).join(','));
       }
 
-      console.log(`📈 [Price Engine] Refreshing prices for ${addresses.length} tokens...`);
+      console.log(` [Price Engine] Refreshing prices for ${addresses.length} tokens...`);
 
       for (const chunk of chunkedAddresses) {
         try {
@@ -849,18 +696,18 @@ const startLivePriceUpdater = (io) => {
           // 3.5 Periodically save the healed metadata to disk
           saveToDisk(finalTokenCache);
         } catch (err) {
-          console.warn(`⚠️ [Price Engine] Chunk refresh failed:`, err.message);
+          console.warn(`️ [Price Engine] Chunk refresh failed:`, err.message);
         }
       }
 
       // 4. Broadcast the updated cache to all clients ONLY if we have data
       if (addresses.length > 0) {
         io.emit('initial-data', finalTokenCache);
-        console.log(`✅ [Price Engine] Dashboard synced with latest updates.`);
+        console.log(` [Price Engine] Dashboard synced with latest updates.`);
       }
 
     } catch (e) {
-      console.warn('⚠️ [Price Engine] Global Price Refresh Skip:', e.message);
+      console.warn('️ [Price Engine] Global Price Refresh Skip:', e.message);
     }
   }, 60000); // Update prices every 60 seconds
 };
@@ -871,18 +718,26 @@ const startLivePriceUpdater = (io) => {
 const app = express();
 const httpServer = createServer(app);
 const io = new Server(httpServer, {
-  cors: { origin: "*", methods: ["GET", "POST"] }
+  cors: {
+    origin: ["https://fourguard-ai.netlify.app", "http://localhost:3005", "http://localhost:3000", "http://localhost:5173"],
+    methods: ["GET", "POST"],
+    credentials: true
+  }
 });
 
-app.use(cors());
+app.use(cors({
+  origin: ["https://fourguard-ai.netlify.app", "http://localhost:3005", "http://localhost:3000", "http://localhost:5173"],
+  methods: ["GET", "POST"],
+  credentials: true
+}));
 app.use(express.json());
 
 io.on('connection', async (socket) => {
-  console.log('🔌 [Socket] Client connected:', socket.id);
+  console.log(' [Socket] Client connected:', socket.id);
 
   // If cache is empty, try to refresh it immediately for the new user
   if (!finalTokenCache.trending || finalTokenCache.trending.length === 0) {
-    console.log('🔄 [Socket] Cache empty, triggering refresh for new client...');
+    console.log(' [Socket] Cache empty, triggering refresh for new client...');
     await refreshTokens(io);
   }
 
@@ -893,128 +748,96 @@ const refreshTokens = async (io) => {
   if (isRefreshing) return;
   isRefreshing = true;
   try {
-    // ROTATING SEARCH: We alternate between broad BSC, Four.Meme, and new pairs to keep the feed fresh
-    const queries = ['four.meme', 'bsc', 'pump', 'trend'];
-    const randomQuery = queries[Math.floor(Math.random() * queries.length)];
+    console.log(` [Discovery] Fetching Newest Pools from GeckoTerminal (Pages 1-4)...`);
+    
+    // Fetch 4 pages to get 80 tokens (20 per page)
+    const pages = [1, 2, 3, 4];
+    const fetchPromises = pages.map(page => 
+      axios.get(`https://api.geckoterminal.com/api/v2/networks/bsc/new_pools?include=base_token&page=${page}`, {
+        headers: { 'Accept': 'application/json' },
+        timeout: 10000
+      }).catch(() => ({ data: { data: [], included: [] } }))
+    );
 
-    console.log(`🔍 [Discovery] Fetching fresh data for query: "${randomQuery}"...`);
-    const res = await axios.get(`https://api.dexscreener.com/latest/dex/search?q=${randomQuery}`, {
-      httpsAgent: new https.Agent({ rejectUnauthorized: false })
+    const results = await Promise.all(fetchPromises);
+    
+    // Merge all pools and tokens from the 3 pages
+    const pools = results.flatMap(res => res.data?.data || []);
+    const tokens = results.flatMap(res => res.data?.included || []);
+
+    const newTokens = pools.map(p => {
+      const baseTokenId = p.relationships?.base_token?.data?.id || '';
+      const tokenInfo = tokens.find(t => t.id === baseTokenId);
+      const actualTokenAddr = baseTokenId.includes('_') ? baseTokenId.split('_')[1].toLowerCase() : baseTokenId.toLowerCase();
+
+      return {
+        id: actualTokenAddr || p.attributes.address.toLowerCase(),
+        address: actualTokenAddr || p.attributes.address.toLowerCase(),
+        name: tokenInfo?.attributes?.name || p.attributes.name.split(' / ')[0] || 'Unknown',
+        symbol: tokenInfo?.attributes?.symbol || 'TKN',
+        price: parseFloat(p.attributes.base_token_price_usd || 0),
+        marketCap: parseFloat(p.attributes.fdv_usd || 0),
+        liquidity: parseFloat(p.attributes.reserve_in_usd || 0),
+        volume: parseFloat(p.attributes.volume_usd?.h24 || 0),
+        logo: tokenInfo?.attributes?.image_url || '',
+        website: '',
+        twitter: '',
+        telegram: '',
+        isFourMeme: false,
+        createdAt: new Date(p.attributes.pool_created_at).getTime(),
+        capturedAt: Date.now(),
+        fetchedAt: new Date().toLocaleTimeString(),
+        priceChange: { h24: parseFloat(p.attributes.price_change_percentage?.h24 || 0) },
+        status: 'LIVE'
+      };
     });
-    const pairs = res.data?.pairs || [];
 
-    const unique = new Map();
-    // Increase scan depth to 150 to fill the 100-token dashboard better
-    for (const p of pairs.slice(0, 150)) {
-      const addr = p.baseToken.address.toLowerCase();
-      if (!unique.has(addr)) {
-        const tokenObj = {
-          id: addr,
-          address: addr, // ADDED: Ensure address field is present for merging
-          name: p.baseToken.name,
-          symbol: p.baseToken.symbol,
-          price: parseFloat(p.priceUsd || 0),
-          marketCap: p.fdv || 0,
-          liquidity: p.liquidity?.usd || 0,
-          volume: p.volume?.h24 || 0,
-          isFourMeme: p.dexId === 'fourmeme' || p.url?.includes('four.meme'),
-          createdAt: p.pairCreatedAt || Date.now(),
-          capturedAt: Date.now(),
-          fetchedAt: new Date().toLocaleTimeString(),
-          priceChange: p.priceChange || { h24: 0 } // Ensure priceChange is captured
-        };
-        unique.set(addr, tokenObj);
+    // Sort strictly by createdAt (Newest first)
+    const sortedPool = newTokens
+      .sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0))
+      .slice(0, 75);
 
-        // LIVE DISCOVERY: If we haven't seen this token before in this session, emit it as NEW
-        if (io && !seenTokenIds.has(addr)) {
-          seenTokenIds.add(addr);
-
-          // Inject into the global cache immediately so it survives price updates
-          const fullToken = { ...tokenObj };
-          finalTokenCache.new = [fullToken, ...finalTokenCache.new].slice(0, 500); // Fixed cap from 100 to 500
-
-          // Optionally enrich with security details and broadcast
-          try {
-            const details = await getTokenSecurityDetails(fullToken);
-            const enriched = { 
-              ...fullToken, 
-              details,
-              aiFeedback: getInitialProjectOverview(fullToken) 
-            };
-            finalTokenCache.new = finalTokenCache.new.map(t => t.id === addr ? enriched : t);
-            io.emit('new-token', enriched);
-            console.log(`✨ [Live Discovery] Found & Captured: ${tokenObj.symbol}`);
-          } catch (e) {
-            console.error(`❌ [Live Discovery] Enrichment failed for ${fullToken.symbol}`);
-          }
-        } else {
-          seenTokenIds.add(addr);
-        }
-      }
-    }
-
-    const pool = Array.from(unique.values());
-    if (pool.length === 0) {
-      console.warn('⚠️ [Discovery] Endpoint returned no pairs. Keeping cache warm.');
+    if (sortedPool.length === 0) {
+      console.warn('️ [Discovery] GeckoTerminal returned no pairs. Keeping cache warm.');
       return;
     }
 
-    // UPDATE CATEGORIES: USE THE WHOLE POOL FOR EVERY CATEGORY
-    const newTrending = [...pool].sort((a, b) => (b.volume || 0) - (a.volume || 0)).slice(0, 50);
-    const newTopRated = [...pool].sort((a, b) => (b.liquidity || 0) - (a.liquidity || 0)).slice(0, 50);
-
-    // MERGE LOGIC: Combine new discoveries with existing cache
-    let combinedNew = [...pool];
-    finalTokenCache.new.forEach(oldToken => {
-      if (!combinedNew.some(nt => nt.id.toLowerCase() === oldToken.id.toLowerCase())) {
-        combinedNew.push(oldToken);
-      }
-    });
-
-    // Deduplicate and Merge using a Map for perfect ID consistency
+    // Preservation Shield: Merge with existing to keep AI details
     const uniqueMap = new Map();
-
-    // 1. Start with existing cached tokens to preserve their timestamps
     finalTokenCache.new.forEach(t => {
       if (t.id) uniqueMap.set(t.id.toLowerCase(), t);
     });
 
-    // 2. Overlay new trending/relevant tokens, but DO NOT overwrite capturedAt
-    combinedNew.forEach(t => {
-      const addr = (t.id || t.address || "").toLowerCase();
-      if (!addr) return;
-
-      if (uniqueMap.has(addr)) {
-        const existing = uniqueMap.get(addr);
-        // PRESERVATION SHIELD: Update prices/volumes but protect healed metadata (Logos, Socials, AI Overview)
-        uniqueMap.set(addr, {
+    const finalMerged = sortedPool.map(t => {
+      if (uniqueMap.has(t.id)) {
+        const existing = uniqueMap.get(t.id);
+        return {
           ...t,
-          logo: existing.logo || t.logo,
-          website: existing.website || t.website,
-          twitter: existing.twitter || t.twitter,
-          telegram: existing.telegram || t.telegram,
           aiFeedback: existing.aiFeedback || t.aiFeedback,
           details: existing.details || t.details,
-          capturedAt: existing.capturedAt || t.capturedAt || Date.now()
-        });
-      } else {
-        uniqueMap.set(addr, { ...t, capturedAt: t.capturedAt || Date.now() });
+          capturedAt: existing.capturedAt || t.capturedAt,
+          // Preserve DexScreener socials/logos if we already healed them via the Deep Repair Machine
+          logo: t.logo || existing.logo,
+          website: existing.website || t.website,
+          twitter: existing.twitter || t.twitter,
+          telegram: existing.telegram || t.telegram
+        };
       }
+      return t;
     });
 
     finalTokenCache = {
-      trending: newTrending,
-      'top-rated': newTopRated,
-      new: Array.from(uniqueMap.values())
-        .sort((a, b) => (b.capturedAt || 0) - (a.capturedAt || 0))
-        .slice(0, 500)
+      trending: [],
+      'top-rated': [],
+      new: finalMerged
     };
 
     saveToDisk(finalTokenCache);
-    io.emit('initial-data', finalTokenCache);
-    console.log(`✅ [Refresh] Global Cache Merged & Synced (${finalTokenCache.new.length} unique tokens)`);
+    if (io) io.emit('initial-data', finalTokenCache);
+    console.log(` [Refresh] Dashboard Updated with ${finalMerged.length} newest GeckoTerminal pools.`);
+
   } catch (err) {
-    console.error('[Discovery Output] Failed:', err.message);
+    console.error('[Discovery Output] Failed to fetch from GeckoTerminal:', err.message);
   } finally {
     isRefreshing = false;
   }
@@ -1022,10 +845,10 @@ const refreshTokens = async (io) => {
 
 app.get('/api/tokens', async (req, res) => {
   try {
-    // If cache empty, trigger immediate refresh for first visitor
-    if (!finalTokenCache.trending || finalTokenCache.trending.length === 0) {
+    if (!finalTokenCache.new || finalTokenCache.new.length === 0) {
       await refreshTokens();
     }
+
     res.json(finalTokenCache);
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -1037,7 +860,7 @@ app.get('/api/tokens', async (req, res) => {
  */
 app.get('/api/lookup/:address', async (req, res) => {
   const addr = req.params.address.toLowerCase();
-  console.log(`🔍 [Global Search] Hunting for: ${addr}`);
+  console.log(` [Global Search] Hunting for: ${addr}`);
 
   try {
     // 1. Check Cache First
@@ -1045,7 +868,7 @@ app.get('/api/lookup/:address', async (req, res) => {
     let token = allTokens.find(t => t.id === addr);
 
     if (token) {
-      console.log(`✅ [Global Search] Found in memory: ${token.symbol}`);
+      console.log(` [Global Search] Found in memory: ${token.symbol}`);
       if (!token.aiFeedback) token.aiFeedback = getInitialProjectOverview(token);
       return res.json(token);
     }
@@ -1055,7 +878,7 @@ app.get('/api/lookup/:address', async (req, res) => {
 
     if (discovered.length === 0) {
       // 2.2 Try Pair Search as fallback (handles IDs like c1amqx... from Raydium/Solana/Pump)
-      console.log(`📡 [Global Search] Token search failed, attempting Pair Lookup...`);
+      console.log(` [Global Search] Token search failed, attempting Pair Lookup...`);
       try {
         const pairRes = await axios.get(`https://api.dexscreener.com/latest/dex/pairs/bsc/${addr}`, {
           httpsAgent: new https.Agent({ rejectUnauthorized: false }),
@@ -1090,7 +913,7 @@ app.get('/api/lookup/:address', async (req, res) => {
           }];
         }
       } catch (err) {
-        console.warn(`⚠️ [Global Search] Pair fallback failed: ${err.message}`);
+        console.warn(`️ [Global Search] Pair fallback failed: ${err.message}`);
       }
     }
 
@@ -1104,13 +927,13 @@ app.get('/api/lookup/:address', async (req, res) => {
 
       // Notify all clients including the one that searched
       io.emit('new-token', enriched);
-      console.log(`🚀 [Global Search] DISCOVERED & Added to Dashboard: ${enriched.symbol}`);
+      console.log(` [Global Search] DISCOVERED & Added to Dashboard: ${enriched.symbol}`);
       return res.json(enriched);
     }
 
     res.status(404).json({ error: 'Token not found on any known market.' });
   } catch (err) {
-    console.error('❌ [Global Search] Lookup failure:', err.message);
+    console.error(' [Global Search] Lookup failure:', err.message);
     res.status(500).json({ error: 'Search engine encountered an error.' });
   }
 });
@@ -1127,7 +950,7 @@ app.post('/api/scan-token', async (req, res) => {
   const { address } = req.body;
   if (!address) return res.status(400).json({ error: 'Token address is required.' });
 
-  console.log(`🚀 [GenLayer Scan] Re-building audit for ${address}...`);
+  console.log(` [GenLayer Scan] Re-building audit for ${address}...`);
 
   try {
     // 1. Resolve token metadata (Look in cache or search)
@@ -1158,18 +981,21 @@ app.post('/api/scan-token', async (req, res) => {
       address: token.id,
       marketCap: token.marketCap,
       liquidity: token.liquidity,
+      website: token.website || "",
+      twitter: token.twitter || "",
+      telegram: token.telegram || "",
       ...token.details
     };
 
     // 3. Trigger Transaction (Backend Signs)
-    console.log(`⛓️ [GenLayer] Writing transaction to contract ${GENLAYER_CONTRACT_ADDRESS}...`);
+    console.log(`️ [GenLayer] Writing transaction to contract ${GENLAYER_CONTRACT_ADDRESS}...`);
     const txHash = await GENLAYER_CLIENT.writeContract({
       address: GENLAYER_CONTRACT_ADDRESS,
       functionName: 'audit_token',
       args: [token.id, token.name, token.symbol, JSON.stringify(auditMetadata)]
     });
 
-    console.log(`✅ [GenLayer] Transaction sent! Hash: ${txHash}`);
+    console.log(` [GenLayer] Transaction sent! Hash: ${txHash}`);
 
     // Clear any stale local record to force an fresh refresh
     reportStore.delete(address.toLowerCase());
@@ -1177,7 +1003,7 @@ app.post('/api/scan-token', async (req, res) => {
     res.json({ success: true, txHash, message: "On-chain audit triggered successfully." });
 
   } catch (err) {
-    console.error('❌ [Scan-Token] Failure:', err.message);
+    console.error(' [Scan-Token] Failure:', err.message);
     res.status(500).json({ error: `Failed to trigger scan: ${err.message}` });
   }
 });
@@ -1204,7 +1030,7 @@ app.get('/api/scan-status/:address', async (req, res) => {
       functionName: 'get_report',
       args: [address]
     });
-    console.log(`⛓️ [GenLayer] Raw Report for ${address}:`, rawReport);
+    console.log(`️ [GenLayer] Raw Report for ${address}:`, rawReport);
 
     if (rawReport && rawReport !== "No audit found.") {
       try {
@@ -1239,10 +1065,10 @@ app.get('/api/scan-status/:address', async (req, res) => {
 
           try {
             if (cachedReport) cachedReport.lastAiCall = now;
-            console.log(`🤖 [Enrichment] Polishing report for ${address}...`);
+            console.log(` [Enrichment] Polishing report for ${address}...`);
             insight = await generateGeminiOverview(token || { name: 'Token', symbol: 'TKN', id: address }, parsed);
           } catch (aiErr) {
-            console.error(`❌ [AI Enrichment] Delayed:`, aiErr.message);
+            console.error(` [AI Enrichment] Delayed:`, aiErr.message);
 
             // Persistent tracking
             const existing = reportStore.get(address) || parsed;
@@ -1262,7 +1088,7 @@ app.get('/api/scan-status/:address', async (req, res) => {
         const finalReport = {
           ...parsed,
           insight: insight || {
-            findings: "GenLayer intelligent contracts have verified the data. Strategic summary is being established.",
+            findings: "The GenLayer intelligent contracts have successfully verified the data on-chain. Strategic summary is being established.",
             pros: "Waiting for intelligence synthesis...",
             cons: "Waiting for intelligence synthesis...",
             watchlist: "Awaiting final checks...",
@@ -1271,6 +1097,19 @@ app.get('/api/scan-status/:address', async (req, res) => {
           timestamp: Date.now(),
           engine_version: "SMART_DEGEN_V2_FINAL"
         };
+
+        // HEALING PROTECTION: Ensure 'checks' always exists for the frontend table
+        if (!finalReport.insight.checks) {
+          finalReport.insight.checks = {
+             socials: !!(token?.website || token?.twitter || token?.telegram),
+             liquidity: (token?.liquidity || 0) > 10000,
+             ownership: parsed.rulesPassed >= 4, 
+             mint: parsed.rulesPassed >= 3,
+             concentration: (token?.details?.top10Percentage || 100) < 50,
+             dev_wallet: (token?.details?.devHoldings || 100) < 10,
+             integrity: (token?.marketCap || 0) > (token?.liquidity || 0) * 0.1
+          };
+        }
 
         // Clean up tracking fields
         delete finalReport.aiRetries;
@@ -1284,7 +1123,7 @@ app.get('/api/scan-status/:address', async (req, res) => {
           marker: "VERIFIED_ACTIVE_FORCE"
         });
       } catch (e) {
-        console.warn(`⚠️ [Scan-Status] malformed report on-chain for ${address}`);
+        console.warn(`️ [Scan-Status] malformed report on-chain for ${address}`);
       }
     }
 
@@ -1292,17 +1131,18 @@ app.get('/api/scan-status/:address', async (req, res) => {
     res.json({ status: 'pending', message: 'The nodes are still checking the code. Please wait.' });
 
   } catch (err) {
-    console.error(`❌ [Scan-Status] View failure:`, err.message);
+    console.error(` [Scan-Status] View failure:`, err.message);
     res.status(500).json({ error: 'Failed to query audit status.' });
   }
 });
 
 const PORT = process.env.PORT || 3001;
 httpServer.listen(PORT, async () => {
-  console.log(`🚀 FourGuard Live Terminal running on port ${PORT} [Bulletproof On-Chain Mode]`);
+  console.log(` FourGuard Live Terminal running on port ${PORT} [Bulletproof On-Chain Mode]`);
 
-  // 1. Initial population and Curation
-  await refreshTokens(io);
+  // Clear out cache on startup to guarantee a 100% fresh real-time feed
+  finalTokenCache = { trending: [], new: [], 'top-rated': [] };
+  saveToDisk(finalTokenCache);
 
   // One-time cache scrubbing: Remove defunct sections from all existing overviews
   const categories = ['trending', 'new', 'top-rated'];
@@ -1319,14 +1159,13 @@ httpServer.listen(PORT, async () => {
     }
   });
   saveToDisk(finalTokenCache);
-  // 2. Start Continuous Background Discovery (Slow Polling)
   setInterval(async () => {
-    console.log('📡 [Discovery] Syncing background market entries...');
+    console.log(' [Discovery] Refreshing dashboard with newest GeckoTerminal pools...');
     await refreshTokens(io);
-  }, 30000);
+  }, 60000);
 
-  // 3. Start the NEW Bulletproof On-Chain discovery engine (High Speed)
-  startLiveDiscovery(io);
+  // WSS engine removed in favor of Premium Polling
+
 
   // 4. Start the price engine (Update prices for tokens we already found)
   startLivePriceUpdater(io);
