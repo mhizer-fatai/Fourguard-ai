@@ -17,16 +17,17 @@ const DashboardPage = ({
   setSelectedToken
 }) => {
   const navigate = useNavigate();
+  const isMobile = window.innerWidth <= 768;
 
   return (
     <div style={{ 
-      padding: '3rem 2.5rem', 
+      padding: isMobile ? '1.5rem 1.25rem' : '3rem 2.5rem', 
       flex: 1,
       minHeight: '400px',
       position: 'relative',
       border: '1px solid rgba(255,255,255,0.03)'
     }}>
-      <div style={{ marginBottom: '3rem', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
+      <div style={{ marginBottom: isMobile ? '2rem' : '3rem', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
         <motion.div
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
@@ -35,14 +36,14 @@ const DashboardPage = ({
             <Activity size={14} color="var(--primary)" />
             <span style={{ fontSize: '12px', color: 'var(--primary)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.15em' }}>Live Updates</span>
           </div>
-          <h2 style={{ fontSize: '2.75rem', fontWeight: 800, color: 'white', letterSpacing: '-0.02em' }}>
+          <h2 style={{ fontSize: isMobile ? '1.75rem' : '2.75rem', fontWeight: 800, color: 'white', letterSpacing: '-0.02em' }}>
             FourGuard <span style={{ color: 'var(--primary)' }}>Dashboard</span>
           </h2>
-          <p style={{ color: '#666', marginTop: '6px', fontSize: '16px' }}>Tracking new tokens and their safety on BNB Chain</p>
-          {filteredTokens.length > 0 && (
+          <p style={{ color: '#666', marginTop: '6px', fontSize: isMobile ? '14px' : '16px' }}>Tracking new tokens on BNB Chain</p>
+          {filteredTokens.length > 0 && !isMobile && (
              <div style={{ marginTop: '12px', fontSize: '11px', color: 'var(--primary)', opacity: 0.8, fontWeight: 500, display: 'flex', alignItems: 'center', gap: '6px' }}>
                 <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--primary)', boxShadow: '0 0 10px var(--primary)' }} />
-                Data Freshness: {filteredTokens[0]?.fetchedAt || 'Live'} (Updated every ~30s)
+                Data Freshness: {filteredTokens[0]?.fetchedAt || 'Live'}
              </div>
           )}
         </motion.div>
@@ -62,14 +63,14 @@ const DashboardPage = ({
         
         {/* Table Header */}
         <div style={{ 
-          display: 'flex', padding: '12px 24px', background: '#131722', borderBottom: '1px solid #1e222d', 
+          display: 'flex', padding: isMobile ? '12px 16px' : '12px 24px', background: '#131722', borderBottom: '1px solid #1e222d', 
           fontSize: '11px', fontWeight: 600, color: '#787b86', textTransform: 'uppercase', letterSpacing: '0.05em' 
         }}>
            <div style={{ flex: 2 }}>Token</div>
-           <div style={{ flex: 1, textAlign: 'right' }}>Price</div>
-           <div style={{ flex: 1, textAlign: 'right' }}>24H Volume</div>
+           {!isMobile && <div style={{ flex: 1, textAlign: 'right' }}>Price</div>}
+           {!isMobile && <div style={{ flex: 1, textAlign: 'right' }}>24H Volume</div>}
            <div style={{ flex: 1, textAlign: 'right' }}>Market Cap</div>
-           <div style={{ flex: 1, textAlign: 'right' }}>Security</div>
+           <div style={{ flex: 1, textAlign: 'right' }}>24H Change</div>
         </div>
 
         <AnimatePresence mode='popLayout'>

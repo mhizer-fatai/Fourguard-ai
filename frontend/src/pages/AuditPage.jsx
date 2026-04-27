@@ -16,7 +16,9 @@ import {
   Shield,
   ShieldAlert,
   Target,
-  ExternalLink
+  ExternalLink,
+  Copy,
+  Check
 } from 'lucide-react';
 import { useReadContract } from 'wagmi';
 import { formatUnits } from 'viem';
@@ -100,33 +102,52 @@ const InitialIntelligence = ({ aiFeedback, token }) => {
   
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-      {aiFeedback.includes('**') ? (
-         sections.map((section, idx) => {
-           if (idx % 2 === 0) {
-             const title = section.trim();
-             const content = sections[idx + 1]?.trim();
-             if (!content) return null;
-             return (
-               <motion.div 
-                 key={idx} 
-                 initial={{ opacity: 0, y: 10 }}
-                 animate={{ opacity: 1, y: 0 }}
-                 transition={{ delay: idx * 0.05 }}
-                 className="glass" 
-                 style={{ padding: '24px', borderRadius: '20px', border: '1px solid rgba(255,255,255,0.03)' }}
-               >
-                 <h5 style={{ fontSize: '11px', fontWeight: 900, color: 'var(--primary)', letterSpacing: '2px', marginBottom: '12px', textTransform: 'uppercase' }}>{title}</h5>
-                 <p style={{ fontSize: '14px', color: '#eee', lineHeight: 1.6, margin: 0, fontWeight: 500 }}>{content}</p>
-               </motion.div>
-             );
-           }
-           return null;
-         })
-      ) : (
-        <div className="glass" style={{ padding: '24px', borderRadius: '20px', border: '1px solid rgba(255,255,255,0.03)' }}>
-          <p style={{ fontSize: '15px', color: '#eee', lineHeight: 1.6, margin: 0, fontWeight: 500 }}>{aiFeedback}</p>
-        </div>
-      )}
+      <div className="glass" style={{ padding: '32px', borderRadius: '24px', border: '1px solid rgba(255,255,255,0.03)', background: 'rgba(255,255,255,0.01)' }}>
+        <p style={{ fontSize: '18px', color: '#eee', lineHeight: 1.8, margin: 0, fontWeight: 500 }}>
+          {aiFeedback.split('**').map((part, i) => i % 2 === 1 ? <strong key={i} style={{ color: 'white', fontWeight: 800 }}>{part}</strong> : part)}
+        </p>
+      </div>
+    </div>
+  );
+};
+
+const SecurityChecklist = ({ checks }) => {
+  if (!checks) return null;
+  
+  const rules = [
+    { id: '01', label: 'Social Presence', key: 'socials', desc: 'Website, Twitter, or Telegram links verified' },
+    { id: '02', label: 'Liquidity Depth', key: 'liquidity', desc: 'Liquidity is above the $10k security threshold' },
+    { id: '03', label: 'Ownership Renounced', key: 'ownership', desc: 'Contract ownership has been fully renounced' },
+    { id: '04', label: 'Mint Authority', key: 'mint', desc: 'Token minting authority is permanently disabled' },
+    { id: '05', label: 'Holder Concentration', key: 'concentration', desc: 'Top 10 holders own less than 50% of supply' },
+    { id: '06', label: 'Dev Wallet Exposure', key: 'dev_wallet', desc: 'Developer wallet holds less than 10% of supply' },
+    { id: '07', label: 'Market Integrity', key: 'integrity', desc: 'Market Cap and Liquidity ratios are balanced' }
+  ];
+
+  return (
+    <div className="glass" style={{ padding: '32px', borderRadius: '24px', border: '1px solid rgba(255,255,255,0.03)', background: 'rgba(255,255,255,0.01)' }}>
+       <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '24px' }}>
+         <ShieldCheck size={18} color="var(--primary)" />
+         <h4 style={{ fontSize: '12px', fontWeight: 800, color: '#787b86', letterSpacing: '2px', textTransform: 'uppercase' }}>SECURITY PROTOCOL VERIFICATION</h4>
+       </div>
+       <div style={{ display: 'flex', flexDirection: 'column', gap: '1px', background: 'rgba(255,255,255,0.05)', borderRadius: '20px', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.05)' }}>
+         {rules.map((rule, i) => (
+           <div key={rule.id} style={{ display: 'flex', alignItems: 'center', padding: '16px 24px', background: '#0a0a0b', gap: '20px' }}>
+              <div style={{ fontSize: '11px', fontWeight: 800, color: '#333', width: '20px' }}>{rule.id}</div>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: '13px', fontWeight: 700, color: 'white' }}>{rule.label}</div>
+                <div style={{ fontSize: '11px', color: '#555', fontWeight: 500 }}>{rule.desc}</div>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '32px', height: '32px', borderRadius: '10px', background: checks[rule.key] ? 'rgba(163, 255, 18, 0.03)' : 'rgba(255, 60, 60, 0.03)' }}>
+                {checks[rule.key] ? (
+                  <Check size={16} color="var(--primary)" strokeWidth={3} />
+                ) : (
+                  <X size={16} color="#ff3c3c" strokeWidth={3} />
+                )}
+              </div>
+           </div>
+         ))}
+       </div>
     </div>
   );
 };
@@ -141,48 +162,40 @@ const AuditStrategist = ({ insight, score }) => {
       animate={{ opacity: 1, y: 0 }}
       style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}
     >
-      {/* 1. Executive Summary / Score Reasons */}
+      {/* 1. GenLayer Findings */}
       <div className="glass" style={{ padding: '32px', borderRadius: '24px', border: '1px solid rgba(255,255,255,0.03)', boxShadow: `0 20px 40px ${getRiskColor(score)}08` }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
           <Shield color={getRiskColor(score)} size={20} />
-          <h4 style={{ fontSize: '14px', fontWeight: 800, color: 'white', letterSpacing: '1px' }}>SUMMARY</h4>
+          <h4 style={{ fontSize: '14px', fontWeight: 800, color: 'white', letterSpacing: '1px' }}>GENLAYER AUDIT FINDINGS</h4>
         </div>
-        <p style={{ fontSize: '18px', color: '#fff', lineHeight: 1.7, fontWeight: 500 }}>{insight.summary}</p>
+        <p style={{ fontSize: '16px', color: '#fff', lineHeight: 1.7, fontWeight: 500 }}>{insight.findings || insight.summary}</p>
       </div>
 
-      {/* 2. Pros vs Cons */}
+      {/* 2. Remarks Section */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))', gap: '24px' }}>
         <div style={{ padding: '36px', borderRadius: '28px', background: 'rgba(163, 255, 18, 0.02)', border: '1px solid rgba(163, 255, 18, 0.1)', boxShadow: 'inset 0 0 30px rgba(163, 255, 18, 0.05)' }}>
           <div style={{ color: 'var(--primary)', fontSize: '14px', fontWeight: 900, marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '12px', letterSpacing: '1px' }}>
-            <Zap size={18} /> POSITIVE INDICATORS
+            <Zap size={18} /> POSITIVE REMARKS
           </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
-            {insight.pros?.map((p, i) => (
-              <div key={`pro-${i}`} style={{ fontSize: '16px', color: '#eee', display: 'flex', gap: '14px', lineHeight: 1.6 }}>
-                <div style={{ minWidth: '8px', height: '8px', borderRadius: '50%', background: 'var(--primary)', marginTop: '9px' }} /> {p}
-              </div>
-            ))}
-          </div>
+          <p style={{ fontSize: '15px', color: '#eee', lineHeight: 1.6, fontWeight: 500 }}>
+            {Array.isArray(insight.pros) ? insight.pros.join(' ') : insight.pros}
+          </p>
         </div>
         <div style={{ padding: '36px', borderRadius: '28px', background: 'rgba(255, 60, 60, 0.02)', border: '1px solid rgba(255, 60, 60, 0.1)', boxShadow: 'inset 0 0 30px rgba(255, 60, 60, 0.05)' }}>
           <div style={{ color: '#ff3c3c', fontSize: '14px', fontWeight: 900, marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '12px', letterSpacing: '1px' }}>
-            <ShieldAlert size={18} /> RISK FACTORS
+            <ShieldAlert size={18} /> NEGATIVE REMARKS
           </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
-            {insight.cons?.map((c, i) => (
-              <div key={`con-${i}`} style={{ fontSize: '16px', color: '#eee', display: 'flex', gap: '14px', lineHeight: 1.6 }}>
-                <div style={{ minWidth: '8px', height: '8px', borderRadius: '50%', background: '#ff3c3c', marginTop: '9px' }} /> {c}
-              </div>
-            ))}
-          </div>
+          <p style={{ fontSize: '15px', color: '#eee', lineHeight: 1.6, fontWeight: 500 }}>
+            {Array.isArray(insight.cons) ? insight.cons.join(' ') : insight.cons}
+          </p>
         </div>
       </div>
 
-      {/* 3. Watchlist & Strategy */}
+      {/* 3. Watchlist & Suggestions */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))', gap: '24px' }}>
         <div className="glass" style={{ padding: '36px', borderRadius: '28px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-          <div style={{ color: '#787b86', fontSize: '12px', fontWeight: 900, marginBottom: '16px', letterSpacing: '2px', textTransform: 'uppercase' }}>THINGS TO WATCH</div>
-          <p style={{ color: 'white', fontSize: '20px', fontWeight: 700, margin: 0, lineHeight: 1.5 }}>{insight.watchlist}</p>
+          <div style={{ color: '#787b86', fontSize: '12px', fontWeight: 900, marginBottom: '16px', letterSpacing: '2px', textTransform: 'uppercase' }}>WHAT TO LOOK OUT FOR</div>
+          <p style={{ color: 'white', fontSize: '18px', fontWeight: 700, margin: 0, lineHeight: 1.5 }}>{insight.watchlist}</p>
         </div>
         <div style={{ 
           padding: '40px', borderRadius: '28px', 
@@ -190,8 +203,8 @@ const AuditStrategist = ({ insight, score }) => {
           color: 'black', boxShadow: '0 15px 40px rgba(163, 255, 18, 0.25)',
           display: 'flex', flexDirection: 'column', justifyContent: 'center'
         }}>
-          <div style={{ fontSize: '12px', fontWeight: 950, marginBottom: '16px', letterSpacing: '2px', opacity: 0.8, textTransform: 'uppercase' }}>STRATEGIC ADVISORY</div>
-          <p style={{ fontSize: '22px', fontWeight: 900, margin: 0, letterSpacing: '-0.02em', lineHeight: 1.4 }}>{insight.strategy}</p>
+          <div style={{ fontSize: '12px', fontWeight: 950, marginBottom: '16px', letterSpacing: '2px', opacity: 0.8, textTransform: 'uppercase' }}>SUGGESTIONS</div>
+          <p style={{ fontSize: '20px', fontWeight: 900, margin: 0, letterSpacing: '-0.02em', lineHeight: 1.4 }}>{insight.suggestions || insight.strategy}</p>
         </div>
       </div>
     </motion.div>
@@ -200,6 +213,34 @@ const AuditStrategist = ({ insight, score }) => {
 
 import config from '../config';
 
+const getRelativeTime = (timestamp) => {
+  if (!timestamp) return 'New';
+  const now = Date.now();
+  const diffInSeconds = Math.floor((now - timestamp) / 1000);
+  if (diffInSeconds < 60) return `${diffInSeconds} secs ago`;
+  const diffInMinutes = Math.floor(diffInSeconds / 60);
+  if (diffInMinutes < 60) return `${diffInMinutes} mins ago`;
+  const diffInHours = Math.floor(diffInMinutes / 60);
+  if (diffInHours < 24) return `${diffInHours} hrs ago`;
+  const diffInDays = Math.floor(diffInHours / 24);
+  return `${diffInDays} days ago`;
+};
+
+const formatPrice = (val) => {
+  if (!val || val === 0) return "$0.00";
+  if (val >= 0.01) return `$${val.toFixed(4)}`;
+  
+  const strVal = val.toFixed(20);
+  const match = strVal.match(/^0\.(0+)(\d{1,4})/);
+  if (match) {
+    const zeroCount = match[1].length;
+    if (zeroCount >= 3) {
+      return `$0.0(${zeroCount})${match[2]}`;
+    }
+  }
+  return `$${val.toFixed(8).replace(/0+$/, '')}`;
+};
+
 const AuditPage = ({ isConnected, onOpenConnectModal, onScanComplete }) => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -207,7 +248,15 @@ const AuditPage = ({ isConnected, onOpenConnectModal, onScanComplete }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [scanStatus, setScanStatus] = useState('idle');
+  const [copied, setCopied] = useState(false);
   const [auditResult, setAuditResult] = useState(null);
+
+  const handleCopy = (e, text) => {
+    e.stopPropagation();
+    navigator.clipboard.writeText(text);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
   
   const API_BASE = config.BACKEND_URL;
 
@@ -257,7 +306,7 @@ const AuditPage = ({ isConnected, onOpenConnectModal, onScanComplete }) => {
   // 2. Poll for Scan Status
   useEffect(() => {
     let interval;
-    if (scanStatus === 'scanning' && token?.id) {
+    if ((scanStatus === 'scanning' || scanStatus === 'finalizing') && token?.id) {
        interval = setInterval(async () => {
          try {
            const res = await fetch(`${API_BASE}/api/scan-status/${token.id}`);
@@ -349,97 +398,118 @@ const AuditPage = ({ isConnected, onOpenConnectModal, onScanComplete }) => {
     </div>
   );
 
+  const isMobile = window.innerWidth <= 768;
+
   return (
     <motion.div 
       initial={{ opacity: 0 }} 
       animate={{ opacity: 1 }} 
-      style={{ padding: '40px', maxWidth: '1400px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '40px' }}
+      style={{ 
+        padding: isMobile ? '20px' : '40px', 
+        maxWidth: '1400px', 
+        margin: '0 auto', 
+        display: 'flex', 
+        flexDirection: 'column', 
+        gap: isMobile ? '24px' : '40px' 
+      }}
     >
       {/* Header */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <div style={{ 
+        display: 'flex', 
+        flexDirection: isMobile ? 'column' : 'row',
+        justifyContent: 'space-between', 
+        alignItems: isMobile ? 'flex-start' : 'center',
+        gap: isMobile ? '20px' : '0'
+      }}>
         <button 
           onClick={() => navigate('/')} 
           style={{ background: 'none', border: 'none', color: '#787b86', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '14px', fontWeight: 700 }}
           onMouseOver={e => e.currentTarget.style.color = 'white'}
           onMouseOut={e => e.currentTarget.style.color = '#787b86'}
         >
-          <ArrowLeft size={16} /> BACK TO TERMINAL
+          <ArrowLeft size={16} /> BACK
         </button>
         
-        <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? '12px' : '20px', width: isMobile ? '100%' : 'auto', justifyContent: isMobile ? 'space-between' : 'flex-end' }}>
            <div style={{ textAlign: 'right' }}>
-              <h1 style={{ fontSize: '28px', fontWeight: 900, color: 'white', margin: 0 }}>{token.name === 'Scanning...' ? 'Token Profile' : token.name}</h1>
-              <div style={{ fontSize: '14px', color: 'var(--primary)', fontWeight: 700, letterSpacing: '2px' }}>{token.symbol || 'TKN'} / BNB</div>
-           </div>
-           
-           <div style={{ position: 'relative' }}>
-             {/* Scan Beam Effect */}
-             {scanStatus === 'scanning' && (
-               <motion.div 
-                 initial={{ top: '-10%' }}
-                 animate={{ top: '110%' }}
-                 transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
-                 style={{ 
-                   position: 'absolute', left: 0, right: 0, height: '2px', 
-                   background: 'var(--primary)', zIndex: 10, boxShadow: '0 0 15px var(--primary)',
-                   borderRadius: '2px'
-                 }}
-               />
-             )}
-             
+              <h1 style={{ fontSize: isMobile ? '20px' : '28px', fontWeight: 900, color: 'white', margin: 0 }}>{token.name === 'Scanning...' ? 'Token Profile' : token.name}</h1>
+              <div style={{ fontSize: '14px', color: 'var(--primary)', fontWeight: 700, letterSpacing: '2px', marginBottom: '4px' }}>{token.symbol || 'TKN'}</div>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '6px' }}>
+                <span style={{ fontSize: '11px', color: '#666', fontFamily: 'monospace' }}>
+                  {token.id.slice(0, 10)}...{token.id.slice(-6)}
+                </span>
+                <div 
+                  onClick={(e) => handleCopy(e, token.id)}
+                  style={{ cursor: 'pointer', opacity: 0.6, display: 'flex', alignItems: 'center' }}
+                >
+                  {copied ? <Check size={14} color="var(--primary)" /> : <Copy size={14} color="#888" />}
+                </div>
+              </div>
+              
+            </div>
+            
+            <div style={{ position: 'relative' }}>
              {token.logo ? (
                <motion.img 
-                 animate={scanStatus === 'scanning' ? { scale: [1, 1.05, 1], opacity: [0.7, 1, 0.7] } : {}}
-                 transition={{ duration: 1.5, repeat: Infinity }}
                  src={token.logo} 
                  alt={token.symbol} 
-                 style={{ width: '64px', height: '64px', borderRadius: '18px', objectFit: 'cover', background: '#131722', boxShadow: '0 10px 30px rgba(0,0,0,0.5)' }} 
+                 style={{ width: '56px', height: '56px', borderRadius: '14px', objectFit: 'cover', background: '#131722' }} 
                />
              ) : (
-               <div style={{ width: '64px', height: '64px', background: 'var(--primary)', borderRadius: '18px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 10px 30px rgba(0,0,0,0.5)' }}>
-                  <ShieldCheck size={36} color="black" />
+               <div style={{ width: '56px', height: '56px', background: 'var(--primary)', borderRadius: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <ShieldCheck size={28} color="black" />
                </div>
              )}
            </div>
         </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '40px' }}>
+      <div style={{ 
+        display: 'grid', 
+        gridTemplateColumns: isMobile ? '1fr' : '2fr 1fr', 
+        gap: isMobile ? '24px' : '40px' 
+      }}>
         {/* Left Column: Intelligence */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '40px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: isMobile ? '24px' : '40px' }}>
           
           {/* Initial Overview Sections */}
             <div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '24px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: isMobile ? '16px' : '24px' }}>
                 <Activity size={18} color="var(--primary)" />
-                <h4 style={{ fontSize: '14px', fontWeight: 800, color: '#787b86', letterSpacing: '2px' }}>PROJECT OVERVIEW</h4>
+                <h4 style={{ fontSize: '12px', fontWeight: 800, color: '#787b86', letterSpacing: '2px' }}>PROJECT OVERVIEW</h4>
               </div>
               <InitialIntelligence aiFeedback={token.aiFeedback} token={token} />
             </div>
+            
+            {auditResult?.insight?.checks && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+              >
+                <SecurityChecklist checks={auditResult.insight.checks} />
+              </motion.div>
+            )}
 
           {/* Audit Strategy (Post-Scan) */}
             <div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '24px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: isMobile ? '16px' : '24px' }}>
                 <Target size={18} color="var(--primary)" />
-                <h4 style={{ fontSize: '14px', fontWeight: 800, color: '#787b86', letterSpacing: '2px' }}>SUMMARY</h4>
+                <h4 style={{ fontSize: '12px', fontWeight: 800, color: '#787b86', letterSpacing: '2px' }}>AUDIT SUMMARY</h4>
               </div>
               
               {!auditResult?.insight && scanStatus === 'scanning' ? (
-                <div style={{ padding: '40px', borderRadius: '24px', background: 'rgba(255,255,255,0.02)', border: '1px dashed rgba(255,255,255,0.1)', textAlign: 'center' }}>
+                <div style={{ padding: '32px', borderRadius: '24px', background: 'rgba(255,255,255,0.02)', border: '1px dashed rgba(255,255,255,0.1)', textAlign: 'center' }}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px', color: '#666' }}>
                     <Loader2 className="animate-spin" size={16} /> 
-                    <span style={{ fontSize: '14px', fontWeight: 600, letterSpacing: '1px', textTransform: 'uppercase' }}>FINALIZING REVIEW...</span>
+                    <span style={{ fontSize: '12px', fontWeight: 600, letterSpacing: '1px' }}>SYNTHESIZING...</span>
                   </div>
                 </div>
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
                   <AuditStrategist insight={auditResult?.insight} score={auditResult?.guardScore} />
                   
-                  {/* Smart Re-Scan Button */}
                   {scanStatus === 'completed' && (
-                    <motion.button
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
+                    <button
                       onClick={handleDeepScan}
                       style={{
                         width: '100%',
@@ -448,170 +518,101 @@ const AuditPage = ({ isConnected, onOpenConnectModal, onScanComplete }) => {
                         background: 'rgba(255,255,255,0.03)',
                         border: '1px solid rgba(255,255,255,0.1)',
                         color: 'var(--primary)',
-                        fontSize: '13px',
+                        fontSize: '12px',
                         fontWeight: 900,
                         letterSpacing: '2px',
                         cursor: 'pointer',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        gap: '12px',
-                        marginTop: '12px'
+                        gap: '12px'
                       }}
                     >
-                      <Activity size={16} /> SCAN AGAIN
-                    </motion.button>
+                      <Activity size={16} /> RE-SCAN TOKEN
+                    </button>
                   )}
                 </div>
               )}
             </div>
 
-          {/* Initial Call to Action & Re-Scan Logic */}
-          {(scanStatus === 'idle' && (!auditResult || (auditResult.timestamp && Date.now() - auditResult.timestamp > 5 * 60 * 1000))) && (
-            <div className="glass" style={{ padding: '40px', borderRadius: '24px', textAlign: 'center', border: '1px solid rgba(255,255,255,0.03)' }}>
-              <h3 style={{ fontSize: '24px', fontWeight: 900, color: 'white', marginBottom: '16px' }}>{auditResult ? 'DATA STALE (5m+)' : 'READY FOR SCAN?'}</h3>
-              <p style={{ color: '#888', marginBottom: '32px', maxWidth: '500px', margin: '0 auto 32px' }}>
-                {auditResult 
-                  ? "This report was generated over 5 minutes ago. You can now run a fresh scan to get the latest holder distribution and market security data."
-                  : "Scan this token with GenLayer to analyze the contract logic and holder distribution in real-time."
-                }
-              </p>
+          {/* Initial Call to Action */}
+          {(scanStatus === 'idle' && !auditResult) && (
+            <div className="glass" style={{ padding: isMobile ? '32px 24px' : '40px', borderRadius: '24px', textAlign: 'center' }}>
+              <h3 style={{ fontSize: isMobile ? '20px' : '24px', fontWeight: 900, color: 'white', marginBottom: '12px' }}>READY FOR DEEP SCAN?</h3>
+              <p style={{ color: '#888', marginBottom: '24px', fontSize: '14px' }}>Analyze the contract logic and holder distribution in real-time with GenLayer.</p>
               <button
                 onClick={handleDeepScan}
                 style={{
-                  padding: '20px 60px', borderRadius: '16px', background: 'var(--primary)', color: 'black', 
-                  fontSize: '18px', fontWeight: 900, border: 'none', cursor: 'pointer', boxShadow: '0 12px 40px rgba(163, 255, 18, 0.3)'
+                  width: isMobile ? '100%' : 'auto',
+                  padding: '18px 48px', borderRadius: '16px', background: 'var(--primary)', color: 'black', 
+                  fontSize: '16px', fontWeight: 900, border: 'none', cursor: 'pointer'
                 }}
               >
                 SCAN WITH GENLAYER
               </button>
             </div>
           )}
-
-      {scanStatus === 'scanning' && (
-    <div className="glass" style={{ padding: '60px', borderRadius: '32px', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '24px' }}>
-      <motion.div
-        animate={{ rotate: 360 }}
-        transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-      >
-        <Loader2 size={48} color="var(--primary)" />
-      </motion.div>
-      <div>
-        <h3 style={{ fontSize: '18px', fontWeight: 900, letterSpacing: '2px', color: 'white', marginBottom: '8px' }}>SCAN IN PROGRESS... WAITING FOR GENLAYER</h3>
-        <p style={{ fontSize: '14px', color: '#888', maxWidth: '400px', margin: '0 auto' }}>
-          FourGuard AI is currently waiting for the GenLayer network to finish the deep scan of {token?.symbol || 'BSC'}.
-        </p>
-      </div>
-    </div>
-  )}
-
-  {scanStatus === 'finalizing' && (
-    <div className="glass" style={{ padding: '40px', borderRadius: '24px', textAlign: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '20px' }}>
-      <motion.div
-        animate={{ rotate: 360 }}
-        transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
-      >
-        <Loader2 size={24} color="var(--primary)" />
-      </motion.div>
-      <span style={{ fontSize: '13px', fontWeight: 900, letterSpacing: '2px', color: 'var(--primary)' }}>FINALIZING REVIEW...</span>
-    </div>
-  )}
         </div>
 
         {/* Right Column: Market & Technical Snapshot */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '40px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: isMobile ? '24px' : '40px' }}>
           
           {/* Quick Stats */}
-          <div className="glass" style={{ padding: '32px', borderRadius: '24px' }}>
-             <h4 style={{ fontSize: '12px', fontWeight: 800, color: '#787b86', letterSpacing: '2px', marginBottom: '24px' }}>MARKET CONTEXT</h4>
-             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          <div className="glass" style={{ padding: '24px', borderRadius: '24px' }}>
+             <h4 style={{ fontSize: '11px', fontWeight: 800, color: '#787b86', letterSpacing: '2px', marginBottom: '20px' }}>MARKET CONTEXT</h4>
+             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                 {[
-                  { label: "Current Price", val: `$${token.price?.toFixed(8) || '0.00'}`, icon: Activity },
-                  { label: "Market Cap (FDV)", val: `$${token.marketCap?.toLocaleString() || '0'}`, icon: TrendingUp },
-                  { label: "Locked Liquidity", val: `$${token.liquidity?.toLocaleString() || '0'}`, icon: Zap },
-                  { label: "Project Age", val: token.details?.age || 'New', icon: Database }
+                  { label: "Price", val: formatPrice(token.price), icon: Activity },
+                  { label: "Market Cap", val: `$${token.marketCap?.toLocaleString() || '0'}`, icon: TrendingUp },
+                  { label: "Liquidity", val: `$${token.liquidity?.toLocaleString() || '0'}`, icon: Zap },
+                  { label: "Age", val: getRelativeTime(token.createdAt), icon: Database }
                 ].map((stat, i) => (
-                  <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px', background: 'rgba(255,255,255,0.03)', borderRadius: '12px' }}>
+                  <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px', background: 'rgba(255,255,255,0.03)', borderRadius: '12px' }}>
                      <div>
                        <div style={{ fontSize: '10px', color: '#666', fontWeight: 800 }}>{stat.label}</div>
-                       <div style={{ fontSize: '16px', fontWeight: 900, color: 'white' }}>{stat.val}</div>
+                       <div style={{ fontSize: '14px', fontWeight: 900, color: 'white' }}>{stat.val}</div>
                      </div>
-                     <stat.icon size={16} color="#333" />
                   </div>
                 ))}
              </div>
           </div>
 
-          {/* Social Links & Trade Actions */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            {/* Real Links */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px' }}>
-                {[
-                  { icon: Globe, label: "Web", url: token.website || '' },
-                  { icon: MessageSquare, label: "X", url: token.twitter || '' },
-                  { icon: MessageSquare, label: "Tele", url: token.telegram || '' },
-                  { icon: ExternalLink, label: "Scan", url: `https://bscscan.com/address/${token.id}` }
-                ].map((link, i) => (
-                  <a key={i} href={link.url || '#'} target="_blank" rel="noreferrer" style={{ 
-                    display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '6px', padding: '12px 6px', 
-                    background: link.url ? 'rgba(163, 255, 18, 0.05)' : '#131722', 
-                    borderRadius: '12px', 
-                    border: link.url ? '1px solid rgba(163, 255, 18, 0.2)' : '1px solid #1e222d',
-                    color: link.url ? 'white' : '#333', 
-                    textDecoration: 'none', 
-                    fontSize: '11px', 
-                    fontWeight: 700, 
-                    transition: 'all 0.2s',
-                    pointerEvents: link.url ? 'auto' : 'none',
-                    opacity: link.url ? 1 : 0.5
-                  }} onMouseOver={e => { if(link.url) { e.currentTarget.style.color = 'var(--primary)'; e.currentTarget.style.borderColor = 'var(--primary)'; } }} onMouseOut={e => { if(link.url) { e.currentTarget.style.color = 'white'; e.currentTarget.style.borderColor = 'rgba(163, 255, 18, 0.2)'; } }}>
-                    <link.icon size={14} />
-                    {link.label}
-                  </a>
-                ))}
-            </div>
+          {/* Trade Actions */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+             <a 
+               href={`https://pancakeswap.finance/swap?outputCurrency=${token.id}`} 
+               target="_blank" rel="noreferrer"
+               style={{ 
+                 width: '100%', padding: '14px', borderRadius: '12px', background: 'rgba(255,255,255,0.05)', 
+                 border: '1px solid rgba(255,255,255,0.1)', color: 'white', textDecoration: 'none',
+                 display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', fontSize: '13px', fontWeight: 800
+               }}
+             >
+               TRADE ON PANCAKE
+             </a>
 
-            {/* Trading Buttons */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-               <a 
-                 href={`https://pancakeswap.finance/swap?outputCurrency=${token.id}`} 
-                 target="_blank" rel="noreferrer"
-                 style={{ 
-                   width: '100%', padding: '16px', borderRadius: '12px', background: 'rgba(255,255,255,0.05)', 
-                   border: '1px solid rgba(255,255,255,0.1)', color: 'white', textDecoration: 'none',
-                   display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', fontSize: '14px', fontWeight: 800, transition: 'all 0.2s'
-                 }}
-                 onMouseOver={e => e.currentTarget.style.background = 'rgba(255,255,255,0.1)'}
-                 onMouseOut={e => e.currentTarget.style.background = 'rgba(255,255,255,0.05)'}
-               >
-                 <TrendingUp size={16} color="var(--primary)" /> TRADE ON PANCAKESWAP
-               </a>
-
-               <a 
-                 href={`https://four.meme/token/${token.id}`} 
-                 target="_blank" rel="noreferrer"
-                 style={{ 
-                   width: '100%', padding: '16px', borderRadius: '12px', backend: '#000', 
-                   border: '1px solid #333', color: 'var(--primary)', textDecoration: 'none',
-                   display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', fontSize: '14px', fontWeight: 800, transition: 'all 0.2s'
-                 }}
-                 onMouseOver={e => e.currentTarget.style.border = '1px solid var(--primary)'}
-                 onMouseOut={e => e.currentTarget.style.border = '1px solid #333'}
-               >
-                 <Zap size={16} /> TRADE ON FOUR.MEME
-               </a>
-            </div>
+             <a 
+               href={`https://four.meme/token/${token.id}`} 
+               target="_blank" rel="noreferrer"
+               style={{ 
+                 width: '100%', padding: '14px', borderRadius: '12px', background: '#000', 
+                 border: '1px solid #333', color: 'var(--primary)', textDecoration: 'none',
+                 display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', fontSize: '13px', fontWeight: 800
+               }}
+             >
+               TRADE ON FOUR.MEME
+             </a>
           </div>
 
-          {/* Final Score (If Scanned) */}
+          {/* Final Score */}
           {(scanStatus === 'completed' || auditResult) && (
-             <div style={{ padding: '40px', borderRadius: '24px', background: getRiskBg(auditResult?.guardScore || 0), border: `1px solid ${getRiskColor(auditResult?.guardScore || 0)}33`, textAlign: 'center' }}>
-                <div style={{ fontSize: '11px', color: '#787b86', fontWeight: 800, marginBottom: '8px', letterSpacing: '2px' }}>FOURGUARD SAFETY SCORE</div>
-                <div style={{ fontSize: '72px', fontWeight: 950, color: getRiskColor(auditResult?.guardScore || 0) }}>
+             <div style={{ padding: '32px', borderRadius: '24px', background: getRiskBg(auditResult?.guardScore || 0), border: `1px solid ${getRiskColor(auditResult?.guardScore || 0)}33`, textAlign: 'center' }}>
+                <div style={{ fontSize: '10px', color: '#787b86', fontWeight: 800, marginBottom: '4px', letterSpacing: '2px' }}>SAFETY SCORE</div>
+                <div style={{ fontSize: isMobile ? '48px' : '64px', fontWeight: 950, color: getRiskColor(auditResult?.guardScore || 0) }}>
                   {auditResult?.guardScore || '??'}
                 </div>
-                <div style={{ fontSize: '14px', fontWeight: 800, color: 'white', marginTop: '8px', textTransform: 'uppercase' }}>
-                  {(auditResult?.riskLevel || 'neutral')} RISK DETECTED
+                <div style={{ fontSize: '12px', fontWeight: 800, color: 'white', textTransform: 'uppercase' }}>
+                  {(auditResult?.riskLevel || 'neutral')} RISK
                 </div>
              </div>
           )}

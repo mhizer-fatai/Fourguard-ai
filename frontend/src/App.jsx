@@ -64,16 +64,18 @@ export default function App() {
     socket.on('new-token', (token) => {
       console.log(`✨ [Live Feed] Token Arrival: ${token.symbol} @ ${token.id}`);
       setRawData(prev => {
-        const ts = token.createdAt ? Number(token.createdAt) : Date.now();
-        const newToken = { ...token, createdAt: ts };
+        const ts = token.capturedAt ? Number(token.capturedAt) : Date.now();
+        const newToken = { ...token, capturedAt: ts };
         
         const filteredNew = prev.new.filter(t => t.id !== newToken.id);
         const filteredTrending = prev.trending.filter(t => t.id !== newToken.id);
 
         return {
           ...prev,
-          new: [newToken, ...filteredNew].sort((a,b) => b.createdAt - a.createdAt).slice(0, 100),
-          trending: [newToken, ...filteredTrending].slice(0, 50)
+          new: [newToken, ...filteredNew]
+            .sort((a, b) => (b.capturedAt || 0) - (a.capturedAt || 0))
+            .slice(0, 75),
+          trending: [newToken, ...filteredTrending].slice(0, 75)
         };
       });
     });
@@ -145,23 +147,26 @@ export default function App() {
 
   // 3. Computed Data for Pages
   let tokens = [];
-  if (activeTab === 'verified') {
-    // Combine all unique tokens and filter by isVerified flag
+  if (activeTab === 'watchlist') {
     const allUnique = new Map();
     [...rawData.trending, ...rawData.new, ...rawData['top-rated']].forEach(t => {
       allUnique.set(t.id.toLowerCase(), t);
     });
-    tokens = Array.from(allUnique.values()).filter(t => t.isVerified);
-  } else if (activeTab === 'watchlist') {
-    const allUnique = new Map();
-    [...rawData.trending, ...rawData.new, ...rawData['top-rated']].forEach(t => {
-      allUnique.set(t.id.toLowerCase(), t);
-    });
-    tokens = Array.from(allUnique.values()).filter(t => watchlist.includes(t.id));
+    tokens = Array.from(allUnique.values())
+      .filter(t => watchlist.includes(t.id))
+      .sort((a, b) => (b.capturedAt || 0) - (a.capturedAt || 0));
   } else if (activeTab === 'history') {
     tokens = scanHistory;
   } else {
-    tokens = rawData[activeTab] || rawData['trending'] || [];
+    // DEFAULT TERMINAL VIEW: Combine all, deduplicate, and show 75 NEWEST at the top
+    const allUnique = new Map();
+    [...rawData.new, ...rawData.trending].forEach(t => {
+      if (t && t.id) allUnique.set(t.id.toLowerCase(), t);
+    });
+    
+    tokens = Array.from(allUnique.values())
+      .sort((a, b) => (b.capturedAt || 0) - (a.capturedAt || 0))
+      .slice(0, 75);
   }
 
   const filteredTokens = tokens.filter(token => {

@@ -12,6 +12,8 @@ const WalletButton = ({ onOpenModal }) => {
     return `${addr.slice(0, 6)}...${addr.slice(-4)}`;
   };
 
+  const isMobile = window.innerWidth <= 768;
+
   if (!isConnected) {
     return (
       <motion.button
@@ -20,7 +22,7 @@ const WalletButton = ({ onOpenModal }) => {
         onClick={onOpenModal}
         style={{
           display: 'flex', alignItems: 'center', gap: '10px',
-          padding: '10px 20px', borderRadius: '12px',
+          padding: isMobile ? '10px' : '10px 20px', borderRadius: '12px',
           background: 'var(--primary)', border: 'none',
           color: 'black', fontWeight: 800, fontSize: '14px',
           cursor: 'pointer', boxShadow: '0 4px 20px rgba(163, 255, 18, 0.2)',
@@ -28,7 +30,7 @@ const WalletButton = ({ onOpenModal }) => {
         }}
       >
         <Wallet size={18} />
-        CONNECT WALLET
+        {!isMobile && "CONNECT WALLET"}
       </motion.button>
     );
   }
