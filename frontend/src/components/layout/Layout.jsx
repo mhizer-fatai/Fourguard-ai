@@ -97,9 +97,9 @@ const Layout = ({
         <SidebarItem
           icon={LayoutDashboard}
           label="Terminal"
-          active={location.pathname === '/terminal' && activeTab === 'trending'}
+          active={location.pathname === '/terminal' && activeTab === 'new'}
           onClick={() => {
-            setActiveTab('trending');
+            setActiveTab('new');
             navigate('/terminal');
           }}
         />

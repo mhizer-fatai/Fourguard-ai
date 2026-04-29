@@ -20,7 +20,7 @@ export default function App() {
   const [scanHistory, setScanHistory] = useState([]);
   const [selectedToken, setSelectedToken] = useState(null);
   const [isConnectModalOpen, setIsConnectModalOpen] = useState(false);
-  const [rawData, setRawData] = useState({ trending: [], new: [], 'top-rated': [] });
+  const [rawData, setRawData] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isError, setIsError] = useState(false);
   const [isSocketConnected, setIsSocketConnected] = useState(false);
@@ -46,14 +46,14 @@ export default function App() {
     socket.on('connect', () => {
       setIsSocketConnected(true);
       setIsError(false);
-      // Force 'trending' tab on connect to ensure data visibility
+      // Force 'new' tab on connect to ensure data visibility
       if (activeTab === 'watchlist' && watchlist.length === 0) {
-        setActiveTab('trending');
+        setActiveTab('new');
       }
     });
 
     socket.on('initial-data', (data) => {
-      const hasData = (data.trending?.length || 0) + (data.new?.length || 0) > 0;
+      const hasData = (data?.length || 0) > 0;
       if (hasData) {
         setRawData(data);
         setIsLoading(false);
@@ -67,16 +67,11 @@ export default function App() {
         const ts = token.capturedAt ? Number(token.capturedAt) : Date.now();
         const newToken = { ...token, capturedAt: ts };
         
-        const filteredNew = prev.new.filter(t => t.id !== newToken.id);
-        const filteredTrending = prev.trending.filter(t => t.id !== newToken.id);
+        const filteredNew = prev.filter(t => t.id !== newToken.id);
 
-        return {
-          ...prev,
-          new: [newToken, ...filteredNew]
-            .sort((a, b) => (b.capturedAt || 0) - (a.capturedAt || 0))
-            .slice(0, 75),
-          trending: [newToken, ...filteredTrending].slice(0, 75)
-        };
+        return [newToken, ...filteredNew]
+          .sort((a, b) => (b.capturedAt || 0) - (a.capturedAt || 0))
+          .slice(0, 500);
       });
     });
 
@@ -149,8 +144,8 @@ export default function App() {
   let tokens = [];
   if (activeTab === 'watchlist') {
     const allUnique = new Map();
-    [...rawData.trending, ...rawData.new, ...rawData['top-rated']].forEach(t => {
-      allUnique.set(t.id.toLowerCase(), t);
+    rawData.forEach(t => {
+      if (t && t.id) allUnique.set(t.id.toLowerCase(), t);
     });
     tokens = Array.from(allUnique.values())
       .filter(t => watchlist.includes(t.id))
@@ -158,9 +153,9 @@ export default function App() {
   } else if (activeTab === 'history') {
     tokens = scanHistory;
   } else {
-    // DEFAULT TERMINAL VIEW: Combine all, deduplicate, and show 75 NEWEST at the top
+    // DEFAULT TERMINAL VIEW: Deduplicate, and show 75 NEWEST at the top
     const allUnique = new Map();
-    [...rawData.new, ...rawData.trending].forEach(t => {
+    rawData.forEach(t => {
       if (t && t.id) allUnique.set(t.id.toLowerCase(), t);
     });
     

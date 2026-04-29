@@ -41,13 +41,13 @@ function loadFromDisk() {
     if (fs.existsSync(CACHE_FILE)) {
       const data = fs.readFileSync(CACHE_FILE, 'utf8');
       const parsed = JSON.parse(data);
-      console.log(` [Persistence] Loaded ${parsed.new?.length || 0} tokens from disk.`);
-      return parsed;
+      console.log(` [Persistence] Loaded ${parsed.length || 0} tokens from disk.`);
+      return Array.isArray(parsed) ? parsed : [];
     }
   } catch (err) {
     console.error('️ [Persistence] Load failed, starting fresh.');
   }
-  return { trending: [], new: [], 'top-rated': [] };
+  return [];
 }
 
 import { createClient } from "genlayer-js";
@@ -553,11 +553,7 @@ async function fetchDexScreenerData(addresses) {
  * Uses individual endpoints to ensure the "info" (logo/socials) object is captured.
  */
 const repairMissingMetadata = async (io) => {
-  const allTokens = [
-    ...finalTokenCache.trending,
-    ...finalTokenCache.new,
-    ...finalTokenCache['top-rated']
-  ];
+  const allTokens = [...finalTokenCache];
 
   // Identify unique addresses missing a logo (including those accidentally wiped to "")
   const missingLogos = [...new Set(allTokens.filter(t => !t.logo || t.logo === "").map(t => t.id))];
@@ -602,11 +598,9 @@ const repairMissingMetadata = async (io) => {
       };
 
       // Apply the healing to the cache
-      ['trending', 'new', 'top-rated'].forEach(cat => {
-        finalTokenCache[cat] = finalTokenCache[cat].map(t => {
-          if (t.id === addr) return { ...t, ...enrichedData };
-          return t;
-        });
+      finalTokenCache = finalTokenCache.map(t => {
+        if (t.id === addr) return { ...t, ...enrichedData };
+        return t;
       });
 
       console.log(` [Repair Machine] HEALED: ${pair.baseToken.symbol} (${addr})`);
@@ -633,11 +627,7 @@ const startLivePriceUpdater = (io) => {
   setInterval(async () => {
     try {
       // 1. Collect all unique token addresses from the cache
-      const allTokens = [
-        ...finalTokenCache.trending,
-        ...finalTokenCache.new,
-        ...finalTokenCache['top-rated']
-      ];
+      const allTokens = [...finalTokenCache];
 
       const addresses = [...new Set(allTokens.map(t => t.id))];
       if (addresses.length === 0) return;
@@ -672,24 +662,22 @@ const startLivePriceUpdater = (io) => {
             const website = info.websites?.[0]?.url || '';
 
             // Update all instances of this token in the cache
-            ['trending', 'new', 'top-rated'].forEach(cat => {
-              finalTokenCache[cat] = finalTokenCache[cat].map(t => {
-                if (t.id === addr) {
-                  // HEALING PROTECTION: Only update metadata if the incoming data is VALID.
-                  // We NEVER overwrite an existing logo/link with an empty one from the bulk API.
-                  return {
-                    ...t,
-                    price: newPrice,
-                    marketCap: p.fdv || t.marketCap,
-                    volume: p.volume?.h24 || t.volume,
-                    logo: (info.imageUrl && info.imageUrl !== "") ? info.imageUrl : t.logo,
-                    website: (website && website !== "") ? website : t.website,
-                    twitter: (twitter && twitter !== "") ? twitter : t.twitter,
-                    telegram: (telegram && telegram !== "") ? telegram : t.telegram
-                  };
-                }
-                return t;
-              });
+            finalTokenCache = finalTokenCache.map(t => {
+              if (t.id === addr) {
+                // HEALING PROTECTION: Only update metadata if the incoming data is VALID.
+                // We NEVER overwrite an existing logo/link with an empty one from the bulk API.
+                return {
+                  ...t,
+                  price: newPrice,
+                  marketCap: p.fdv || t.marketCap,
+                  volume: p.volume?.h24 || t.volume,
+                  logo: (info.imageUrl && info.imageUrl !== "") ? info.imageUrl : t.logo,
+                  website: (website && website !== "") ? website : t.website,
+                  twitter: (twitter && twitter !== "") ? twitter : t.twitter,
+                  telegram: (telegram && telegram !== "") ? telegram : t.telegram
+                };
+              }
+              return t;
             });
           });
 
@@ -736,7 +724,7 @@ io.on('connection', async (socket) => {
   console.log(' [Socket] Client connected:', socket.id);
 
   // If cache is empty, try to refresh it immediately for the new user
-  if (!finalTokenCache.trending || finalTokenCache.trending.length === 0) {
+  if (finalTokenCache.length === 0) {
     console.log(' [Socket] Cache empty, triggering refresh for new client...');
     await refreshTokens(io);
   }
@@ -804,7 +792,7 @@ const refreshTokens = async (io) => {
 
     // Preservation Shield: Merge with existing to keep AI details
     const uniqueMap = new Map();
-    finalTokenCache.new.forEach(t => {
+    finalTokenCache.forEach(t => {
       if (t.id) uniqueMap.set(t.id.toLowerCase(), t);
     });
 
@@ -826,11 +814,7 @@ const refreshTokens = async (io) => {
       return t;
     });
 
-    finalTokenCache = {
-      trending: [],
-      'top-rated': [],
-      new: finalMerged
-    };
+    finalTokenCache = finalMerged;
 
     saveToDisk(finalTokenCache);
     if (io) io.emit('initial-data', finalTokenCache);
@@ -845,13 +829,15 @@ const refreshTokens = async (io) => {
 
 app.get('/api/tokens', async (req, res) => {
   try {
-    if (!finalTokenCache.new || finalTokenCache.new.length === 0) {
+    if (finalTokenCache.length === 0) {
       await refreshTokens();
     }
-
-    res.json(finalTokenCache);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.json({
+      success: true,
+      data: finalTokenCache
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, error: 'Failed to fetch tokens' });
   }
 });
 
@@ -923,7 +909,7 @@ app.get('/api/lookup/:address', async (req, res) => {
       const enriched = { ...liveToken, details, aiFeedback: null, status: 'LIVE' };
 
       // Inject into dashboard memory so user sees it
-      finalTokenCache.new = [enriched, ...finalTokenCache.new].slice(0, 500);
+      finalTokenCache = [enriched, ...finalTokenCache].slice(0, 500);
 
       // Notify all clients including the one that searched
       io.emit('new-token', enriched);
@@ -954,14 +940,7 @@ app.post('/api/scan-token', async (req, res) => {
 
   try {
     // 1. Resolve token metadata (Look in cache or search)
-    let token = null;
-    const categories = Object.values(finalTokenCache || {});
-    for (const cat of categories) {
-      if (Array.isArray(cat)) {
-        token = cat.find(t => t.id && (t.id.toLowerCase() === address.toLowerCase()));
-        if (token) break;
-      }
-    }
+    let token = finalTokenCache.find(t => t.id && (t.id.toLowerCase() === address.toLowerCase()));
 
     if (!token) {
       const discovered = await fetchDexScreenerData([address]);
@@ -1039,7 +1018,7 @@ app.get('/api/scan-status/:address', async (req, res) => {
         // --- AI ENRICHMENT PHASE ---
         // Resolve token metadata for context
         let token = null;
-        const allTokens = [...finalTokenCache.trending, ...finalTokenCache.new, ...finalTokenCache['top-rated']];
+        const allTokens = [...finalTokenCache];
         token = allTokens.find(t => t.id === address);
 
         if (!token) {
@@ -1141,21 +1120,16 @@ httpServer.listen(PORT, async () => {
   console.log(` FourGuard Live Terminal running on port ${PORT} [Bulletproof On-Chain Mode]`);
 
   // Clear out cache on startup to guarantee a 100% fresh real-time feed
-  finalTokenCache = { trending: [], new: [], 'top-rated': [] };
+  finalTokenCache = [];
   saveToDisk(finalTokenCache);
 
   // One-time cache scrubbing: Remove defunct sections from all existing overviews
-  const categories = ['trending', 'new', 'top-rated'];
-  categories.forEach(cat => {
-    if (finalTokenCache[cat]) {
-      finalTokenCache[cat].forEach(t => {
-        if (t.aiFeedback && typeof t.aiFeedback === 'string') {
-          // Robust scrubbing of old sections
-          t.aiFeedback = t.aiFeedback.split('**HOLDER DISTRIBUTION**')[0]
-            .split('**ECOSYSTEM STATE**')[0]
-            .trim();
-        }
-      });
+  finalTokenCache.forEach(t => {
+    if (t.aiFeedback && typeof t.aiFeedback === 'string') {
+      // Robust scrubbing of old sections
+      t.aiFeedback = t.aiFeedback.split('**HOLDER DISTRIBUTION**')[0]
+        .split('**ECOSYSTEM STATE**')[0]
+        .trim();
     }
   });
   saveToDisk(finalTokenCache);

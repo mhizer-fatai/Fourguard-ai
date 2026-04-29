@@ -1,8 +1,8 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Shield, Wallet, ChevronRight, Loader2 } from 'lucide-react';
-import { useConnect } from 'wagmi';
+import { useConnect, useAccount } from 'wagmi';
 
 const WalletIcon = ({ name }) => {
   // Branded colors and icons for common wallets
@@ -29,6 +29,13 @@ const WalletIcon = ({ name }) => {
 
 const ConnectModal = ({ isOpen, onClose }) => {
   const { connectors, connect, status, error } = useConnect();
+  const { isConnected } = useAccount();
+
+  useEffect(() => {
+    if (isConnected && isOpen) {
+      onClose();
+    }
+  }, [isConnected, isOpen, onClose]);
 
   if (!isOpen) return null;
 
