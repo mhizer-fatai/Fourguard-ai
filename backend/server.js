@@ -850,7 +850,7 @@ app.get('/api/lookup/:address', async (req, res) => {
 
   try {
     // 1. Check Cache First
-    const allTokens = [...finalTokenCache.trending, ...finalTokenCache.new, ...finalTokenCache['top-rated']];
+    const allTokens = [...finalTokenCache];
     let token = allTokens.find(t => t.id === addr);
 
     if (token) {
